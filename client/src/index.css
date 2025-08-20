@@ -1,0 +1,202 @@
+﻿@import "tailwindcss";
+
+/* =========================
+   THEME & TOKENS
+   ========================= */
+:root{
+  color-scheme: dark;
+  --bg: #0f172a;        /* nền */
+  --fg: #e2e8f0;        /* chữ */
+  --muted: #334155;     /* viền mờ */
+  --cell: clamp(1.55rem, 2.2vw, 1.95rem);  /* kích thước ô responsive */
+  --cell-br: .125rem;   /* bo góc ô */
+}
+
+html, body { height: 100%; }
+body{
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================
+   GRID CELL 12x12
+   ========================= */
+.cell{
+  width: var(--cell);
+  height: var(--cell);
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--muted) 60%, transparent);
+  border-radius: var(--cell-br);
+  transition:
+    box-shadow .14s ease,
+    border-color .14s ease,
+    transform .06s ease,
+    background-color .12s ease;
+  will-change: box-shadow, border-color, transform;
+  contain: paint; /* hạn chế “nhòe” viền khi zoom */
+}
+.cell:hover{
+  border-color: color-mix(in oklab, #38bdf8 70%, transparent); /* sky-400 */
+  box-shadow: 0 0 0 2px color-mix(in oklab, #38bdf8 35%, transparent);
+}
+
+.cell.obstacle{ background: rgba(30,41,59,.9); }          /* slate-800 */
+
+/* Ô có đơn vị ta (hiển thị rõ ràng) */
+.cell.unit{
+  position: relative;
+  background: rgba(5,150,105,.85);                        /* emerald-600 */
+  outline: 1px dashed rgba(16,185,129,.5);                /* emerald-500 */
+  outline-offset: -2px;
+}
+
+/* Ô đã trúng đạn */
+.cell.hit{
+  background: rgba(220,38,38,.78);                        /* red-600  */
+  animation: hit-flash .5s ease both;
+}
+
+/* Vùng bắn dự kiến (kết hợp ring của Tailwind) */
+.cell:is(.ring-2){ transform: translateZ(0) scale(1.02); }
+.cell:is(.outline){ box-shadow: inset 0 0 0 1px rgba(56,189,248,.65); }
+
+/* Hiệu ứng pop khi vừa trúng */
+@keyframes hit-flash{
+  0%   { filter: brightness(1.25); transform: scale(1.03); }
+  60%  { filter: brightness(1.05); transform: scale(1); }
+  100% { filter: brightness(1); }
+}
+
+/* Khi con trỏ dùng để bắn (BoardGrid bật canFire) */
+.cell[data-can-fire="true"]:hover { cursor: crosshair; }
+
+/* =========================
+   CARDS / PANELS / BADGES / BUTTONS
+   ========================= */
+.glass{
+  background: color-mix(in oklab, #0b1220 70%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(148,163,184,.15); /* slate-400/15% */
+}
+
+/* Thẻ chung cho các panel (BattleUI dùng) */
+.board-card{
+  background: color-mix(in oklab, #0b1220 70%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(148,163,184,.16);
+  border-radius: 1rem;               /* mềm mại khi zoom */
+  padding: 1rem;
+  box-shadow: 0 10px 24px -12px rgba(2,6,23,.45);
+}
+
+/* Nút dùng chung */
+.button{
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.5rem .75rem; border-radius:.75rem;
+  background:#0b1220;
+  border:1px solid rgba(148,163,184,.18);
+  transition: transform .06s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+  cursor: pointer;
+  user-select: none;
+}
+.button:hover{ background:#111a2d; border-color:rgba(148,163,184,.28); }
+.button:active{ transform: translateY(1px); }
+.button[disabled]{ opacity:.5; cursor:not-allowed; }
+
+/* Huy hiệu nhỏ */
+.badge{
+  display:inline-flex; align-items:center; gap:.4rem;
+  height: 1.6rem; padding: 0 .6rem;
+  border-radius: .6rem;
+  background: rgba(30,41,59,.65);
+  border: 1px solid rgba(148,163,184,.18);
+  font-size:.75rem; line-height:1;
+}
+.badge--ok   { background: rgba(16,185,129,.15); border-color: rgba(16,185,129,.35); }
+.badge--warn { background: rgba(250,204,21,.15); border-color: rgba(250,204,21,.35); }
+.badge--info { background: rgba(56,189,248,.12); border-color: rgba(56,189,248,.35); }
+
+/* Viên thời gian nho nhỏ (tuỳ dùng) */
+.timer-pill{
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:.25rem .5rem; border-radius:.5rem;
+  background: rgba(51,65,85,.55);
+  border: 1px solid rgba(148,163,184,.18);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ký hiệu phím (Q/E/Space) */
+.kbd{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width: 1.2rem; height: 1.4rem; padding: 0 .35rem;
+  border-radius: .35rem;
+  background: rgba(15,23,42,.9);
+  border:1px solid rgba(148,163,184,.25);
+  font-size: .75rem; line-height: 1;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.25);
+}
+
+/* =========================
+   LEGEND BAR (chú thích)
+   ========================= */
+.legend-bar{
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem .75rem;
+  align-items: center;
+}
+.legend-item{
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .35rem .55rem;
+  border-radius: .6rem;
+  background: rgba(30,41,59,.55);                /* slate-800/55% */
+  border: 1px solid rgba(148,163,184,.16);
+  font-size: .8rem;
+}
+.legend-swatch{
+  width: .9rem; height: .9rem; border-radius: .25rem;
+  box-shadow: 0 0 0 1px rgba(148,163,184,.25) inset;
+}
+.legend-swatch--unit   { background: rgba(16,185,129,.75); } /* unit:   emerald */
+.legend-swatch--hit    { background: rgba(220,38,38,.75); }  /* hit:    red */
+.legend-swatch--target { outline: 2px solid rgba(251,191,36,.75); } /* target: amber */
+.legend-swatch--rock   { background: rgba(30,41,59,.95); }   /* obstacle */
+
+/* =========================
+   AXES LABELS (A-L / 1-12)
+   ========================= */
+.grid-axes{
+  font-size: .75rem;
+  opacity: .7;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================
+   SCROLLBAR (WebKit)
+   ========================= */
+*::-webkit-scrollbar{ height: 10px; width: 10px; }
+*::-webkit-scrollbar-track{ background: rgba(15,23,42,.3); }
+*::-webkit-scrollbar-thumb{
+  background: rgba(100,116,139,.45);
+  border-radius: 8px;
+  border: 2px solid rgba(15,23,42,.4);
+}
+*::-webkit-scrollbar-thumb:hover{ background: rgba(148,163,184,.6); }
+
+/* =========================
+   SMALL UTILITIES
+   ========================= */
+.card { border-radius: 1rem; }
+.animate-ping-slow { animation: ping 0.8s ease-out; }
+@keyframes ping { 75%,100% { transform: scale(1.15); opacity:.35 } }
+
+/* Nhỏ màn hình: tăng cell chút để dễ bấm */
+@media (max-width: 420px){
+  :root{ --cell: clamp(1.6rem, 4.5vw, 2.05rem); }
+}

@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ====== Theme & tokens ====== */
+:root{
+  color-scheme: dark;
+  --bg: #0f172a;
+  --fg: #e2e8f0;
+  --muted: #334155;
+  --cell: clamp(1.6rem, 2.4vw, 2.0rem);
+  --cell-br: .2rem;
+}
+body{ background: var(--bg); color: var(--fg); }
+
+/* ====== generic ====== */
+.board-card{
+  @apply p-4 rounded-2xl border;
+  background: color-mix(in oklab, #0b1220 70%, transparent);
+  border-color: rgba(148,163,184,.15);
+}
+.badge{
+  @apply px-2 py-0.5 rounded-md bg-slate-800 border border-slate-600/50;
+}
+
+/* ====== cell ====== */
+.cell{
+  width: var(--cell); height: var(--cell);
+  display: grid; place-items: center;
+  border: 1px solid color-mix(in oklab, var(--muted) 60%, transparent);
+  border-radius: var(--cell-br);
+  transition: box-shadow .14s ease, border-color .14s ease, transform .06s ease;
+}
+.cell:hover{
+  border-color: color-mix(in oklab, #38bdf8 70%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, #38bdf8 35%, transparent);
+}
+.cell.unit{
+  background: rgba(16,185,129,.85);
+  outline: 1px dashed rgba(16,185,129,.35);
+  outline-offset: -2px;
+}
+.cell.hit{ background: rgba(239,68,68,.75); }
+
+/* Scrollbar */
+*::-webkit-scrollbar{ height: 10px; width: 10px; }
+*::-webkit-scrollbar-track{ background: rgba(15,23,42,.3); }
+*::-webkit-scrollbar-thumb{
+  background: rgba(100,116,139,.45);
+  border-radius: 8px;
+  border: 2px solid rgba(15,23,42,.4);
+}
+*::-webkit-scrollbar-thumb:hover{ background: rgba(148,163,184,.6); }
