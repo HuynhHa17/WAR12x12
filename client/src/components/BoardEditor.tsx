@@ -3,6 +3,11 @@ import type { Board, Dir, Terrain } from '../types'
 import toast from 'react-hot-toast'
 
 type UnitType = 'commander' | 'artillery' | 'armor' | 'missile' | 'radar'
+type Point = { x: number; y: number }
+type Placement = { id: string; type: UnitType; x: number; y: number; dir: Dir }
+
+const letters = 'ABCDEFGHIJKL'.split('')
+const DIRS: Dir[] = ['N', 'E', 'S', 'W']
 
 const UNIT_LABEL: Record<UnitType, string> = {
   commander: 'Chỉ huy (1x1)',
@@ -11,34 +16,38 @@ const UNIT_LABEL: Record<UnitType, string> = {
   missile:   'Tên lửa (1x4)',
   radar:     'Ra-đa (2x2)',
 }
-
 const UNIT_COUNT: Record<UnitType, number> = {
   commander: 1, artillery: 1, armor: 1, missile: 1, radar: 1,
 }
-
-type Point = { x: number; y: number }
-type Placement = { id: string; type: UnitType; x: number; y: number; dir: Dir }
-const DIRS: Dir[] = ['N', 'E', 'S', 'W']
-
 const mapName: Record<Terrain, string> = {
   desert: 'Sa mạc', jungle: 'Rừng rậm', prairie: 'Thảo nguyên', ice: 'Băng giá',
 }
 
+/* ---------- geometry helpers ---------- */
 function cellsFor(type: UnitType, x: number, y: number, dir: Dir): Point[] {
-  const cells: Point[] = []
-  const add = (dx: number, dy: number) => cells.push({ x: x + dx, y: y + dy })
-  const rot = (dx: number, dy: number) => {
-    switch (dir) { case 'N': return [dx, dy]; case 'E': return [dy, -dx]; case 'S': return [-dx, -dy]; case 'W': return [-dy, dx] }
+  const out: Point[] = []
+  const rot = (dx: number, dy: number): [number, number] => {
+    switch (dir) {
+      case 'N': return [dx, dy]
+      case 'E': return [dy, -dx]
+      case 'S': return [-dx, -dy]
+      case 'W': return [-dy, dx]
+    }
   }
-  const stamp = (w: number, h: number) => { for (let yy=0; yy<h; yy++) for (let xx=0; xx<w; xx++) { const [rx, ry]=rot(xx,yy); add(rx, ry) } }
+  const stamp = (w: number, h: number) => {
+    for (let yy = 0; yy < h; yy++)
+      for (let xx = 0; xx < w; xx++) {
+        const [rx, ry] = rot(xx, yy)
+        out.push({ x: x + rx, y: y + ry })
+      }
+  }
   if (type === 'commander') stamp(1,1)
   else if (type === 'artillery') stamp(1,2)
   else if (type === 'armor') stamp(2,2)
   else if (type === 'missile') stamp(1,4)
   else if (type === 'radar') stamp(2,2)
-  return cells
+  return out
 }
-
 const inBounds = (p: Point) => p.x >= 0 && p.y >= 0 && p.x < 12 && p.y < 12
 
 function collides(board: Board, placed: Placement[], type: UnitType, x: number, y: number, dir: Dir) {
@@ -52,7 +61,6 @@ function collides(board: Board, placed: Placement[], type: UnitType, x: number, 
   }
   return null
 }
-
 function findRandomSpot(board: Board, placed: Placement[], type: UnitType, dir: Dir, tries = 200): Point | null {
   for (let i = 0; i < tries; i++) {
     const x = Math.floor(Math.random() * 12)
@@ -62,6 +70,7 @@ function findRandomSpot(board: Board, placed: Placement[], type: UnitType, dir: 
   return null
 }
 
+/* ========== component ========== */
 export default function BoardEditor({
   board, mapType, onSubmit, endsAt,
 }: { board: Board; mapType: Terrain; onSubmit: (units: Placement[]) => void; endsAt?: number }) {
@@ -82,6 +91,7 @@ export default function BoardEditor({
     return new Set(cellsFor(selected, hover.x, hover.y, dir).map(p => `${p.x},${p.y}`))
   }, [hover, selected, dir])
 
+  /* deadline */
   useEffect(() => {
     const t = setInterval(() => {
       if (Date.now() >= deadline) {
@@ -93,10 +103,13 @@ export default function BoardEditor({
     return () => clearInterval(t)
   }, [deadline, placed, onSubmit])
 
-  // Phím tắt Q/E/R xoay
+  /* Q/E/R rotate (ignore when typing) */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'q' || e.key === 'Q') setDir(d => (d === 'N' ? 'W' : d === 'W' ? 'S' : d === 'S' ? 'E' : 'N'))
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if (e.key === 'q' || e.key === 'Q')
+        setDir(d => (d === 'N' ? 'W' : d === 'W' ? 'S' : d === 'S' ? 'E' : 'N'))
       if (e.key === 'e' || e.key === 'E' || e.key === 'r' || e.key === 'R')
         setDir(d => (d === 'N' ? 'E' : d === 'E' ? 'S' : d === 'S' ? 'W' : 'N'))
     }
@@ -106,7 +119,11 @@ export default function BoardEditor({
 
   const handleCellClick = (x: number, y: number) => {
     const err = collides(board, placed, selected, x, y, dir)
-    if (!err) { setPlaced(p => [...p, { id: crypto.randomUUID(), type: selected, x, y, dir }]); return }
+    if (!err) {
+      setPlaced(p => [...p, { id: crypto.randomUUID(), type: selected, x, y, dir }])
+      return
+    }
+    // click vào ô có quân -> gỡ cả đơn vị
     const hitId = placed.find(pl => cellsFor(pl.type, pl.x, pl.y, pl.dir).some(c => c.x === x && c.y === y))?.id
     if (hitId) setPlaced(p => p.filter(pl => pl.id !== hitId))
     else toast.error(err)
@@ -132,7 +149,7 @@ export default function BoardEditor({
   const clearAll = () => setPlaced([])
   const rotateLeft  = () => setDir(d => (d === 'N' ? 'W' : d === 'W' ? 'S' : d === 'S' ? 'E' : 'N'))
   const rotateRight = () => setDir(d => (d === 'N' ? 'E' : d === 'E' ? 'S' : d === 'S' ? 'W' : 'N'))
-  const canSubmit = (Object.keys(UNIT_COUNT) as UnitType[]).every(t => counter[t] === UNIT_COUNT[t])
+  const canSubmit = (Object.keys(UNIT_COUNT) as UnitType[]).every(t => (counter[t] || 0) === UNIT_COUNT[t])
   const remainSec = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
 
   return (
@@ -149,34 +166,87 @@ export default function BoardEditor({
           </div>
         </div>
 
-        {/* Lưới với preview */}
+        {/* Lưới + nhãn trục */}
         <div className="inline-block">
-          <div className="grid grid-cols-12 gap-1">
-            {board.flatMap((row, y) =>
-              row.map((c, x) => {
-                const cls = ['cell']
-                if (c.o) cls.push('obstacle')
-                if (c.h) cls.push('hit')
-                const placedHere = placed.some(pl => cellsFor(pl.type, pl.x, pl.y, pl.dir).some(k => k.x === x && k.y === y))
-                if (placedHere) cls.push('unit')
-                const pv = preview.has(`${x},${y}`)
-                const err = hover && pv ? collides(board, placed, selected, hover.x, hover.y, dir) : null
-                const ring = pv ? (err ? ' ring-2 ring-rose-500/70 ring-offset-1 ring-offset-slate-900 ' : ' ring-2 ring-amber-400/70 ring-offset-1 ring-offset-slate-900 ') : ''
-                return (
-                  <div
-                    key={`${x}_${y}`} className={cls.join(' ') + ring}
-                    onMouseEnter={() => setHover({ x, y })}
-                    onMouseLeave={() => setHover(undefined)}
-                    onClick={() => handleCellClick(x, y)}
-                    title={`${String.fromCharCode(65 + x)}${y + 1}`}
-                    onContextMenu={(e) => { e.preventDefault()
-                      const hitId = placed.find(pl => cellsFor(pl.type, pl.x, pl.y, pl.dir).some(k => k.x === x && k.y === y))?.id
-                      if (hitId) setPlaced(p => p.filter(pl => pl.id !== hitId))
-                    }}
-                  />
-                )
-              }),
-            )}
+          {/* Nhãn cột – bù offset cùng lưới */}
+          <div
+            className="mb-1 grid-axes axes-cols"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(12, var(--cell))' }}
+          >
+            {letters.map(c => (
+              <div
+                key={c}
+                style={{ width: 'var(--cell)', height: 'var(--cell)', lineHeight: 'var(--cell)' }}
+                className="text-center"
+              >
+                {c}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            {/* Nhãn hàng – bù offset theo trục dọc */}
+            <div
+              className="grid-axes axes-rows"
+              style={{ display: 'grid', gridTemplateRows: 'repeat(12, var(--cell))' }}
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <div
+                  key={i}
+                  style={{ width: 'var(--cell)', height: 'var(--cell)', lineHeight: 'var(--cell)' }}
+                  className="text-right pr-1"
+                >
+                  {i + 1}
+                </div>
+              ))}
+            </div>
+
+            {/* Lưới 12x12 – sát nhau, kẻ lưới bằng background */}
+            <div
+              className="board-tight"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(12, var(--cell))',
+                gridAutoRows: 'var(--cell)',
+              }}
+            >
+              {board.flatMap((row, y) =>
+                row.map((c, x) => {
+                  const key = `${x},${y}`
+                  const placedHere = placed.some(pl =>
+                    cellsFor(pl.type, pl.x, pl.y, pl.dir).some(k => k.x === x && k.y === y)
+                  )
+                  const pv = preview.has(key)
+                  const err = hover && pv ? collides(board, placed, selected, hover.x, hover.y, dir) : null
+
+                  const cls = [
+                    'cell',
+                    c.o ? 'obstacle' : '',
+                    c.h ? 'hit' : '',
+                    placedHere ? 'unit' : '',
+                    pv ? (err ? 'cell--pv-bad' : 'cell--pv-ok') : '',
+                  ].join(' ')
+
+                  return (
+                    <div
+                      key={key}
+                      className={cls}
+                      title={`${letters[x]}${y + 1}`}
+                      onMouseEnter={() => setHover({ x, y })}
+                      onMouseLeave={() => setHover(undefined)}
+                      onClick={() => handleCellClick(x, y)}
+                      onContextMenu={(e) => {
+                        e.preventDefault()
+                        const hitId = placed.find(pl =>
+                          cellsFor(pl.type, pl.x, pl.y, pl.dir).some(k => k.x === x && k.y === y)
+                        )?.id
+                        if (hitId) setPlaced(p => p.filter(pl => pl.id !== hitId))
+                      }}
+                    />
+                  )
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -187,7 +257,7 @@ export default function BoardEditor({
 
         <div className="space-y-2">
           {(Object.keys(UNIT_COUNT) as UnitType[]).map((t) => {
-            const left = UNIT_COUNT[t] - (counter[t] || 0)
+            const used = counter[t] || 0
             const active = selected === t
             return (
               <button
@@ -198,7 +268,7 @@ export default function BoardEditor({
                 } hover:bg-slate-700/70`}
               >
                 <span>{UNIT_LABEL[t]}</span>
-                <span className="text-sm opacity-80">{UNIT_COUNT[t] - left}/{UNIT_COUNT[t]}</span>
+                <span className="text-sm opacity-80">{used}/{UNIT_COUNT[t]}</span>
               </button>
             )
           })}
@@ -208,7 +278,9 @@ export default function BoardEditor({
           <button className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700" onClick={clearAll}>Xoá hết</button>
           <button className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700" onClick={randomFill}>Random xếp</button>
           <button
-            className={`col-span-2 px-3 py-2 rounded-lg font-semibold ${canSubmit ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-slate-800 opacity-60 cursor-not-allowed'}`}
+            className={`col-span-2 px-3 py-2 rounded-lg font-semibold ${
+              canSubmit ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-slate-800 opacity-60 cursor-not-allowed'
+            }`}
             disabled={!canSubmit}
             onClick={() => onSubmit(placed)}
             title={canSubmit ? 'Sẵn sàng' : 'Hãy đặt đủ số lượng'}

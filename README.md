@@ -25,7 +25,6 @@ npm i
 # Hoặc chạy trực tiếp:
 node index.js
 
-### Client
 ```bash
 cd client
 npm i

@@ -6,12 +6,15 @@
   --bg: #0f172a;
   --fg: #e2e8f0;
   --muted: #334155;
-  --cell: clamp(1.6rem, 2.4vw, 2.0rem);
+  --cell: clamp(1.6rem, 2.4vw, 2.0rem);  /* kích cỡ ô responsive */
   --cell-br: .2rem;
+  --grid-line: color-mix(in oklab, var(--muted) 55%, transparent); /* màu kẻ lưới */
+  --grid-off: 0px;  /* nếu thấy răng cưa ở 1 vài mức zoom: thử 0.5px hoặc 1px.
+                       NHỚ: axes-cols/axes-rows cũng dùng đúng giá trị này */
 }
 body{ background: var(--bg); color: var(--fg); }
 
-/* ====== generic ====== */
+/* ====== Cards / badges ====== */
 .board-card{
   @apply p-4 rounded-2xl border;
   background: color-mix(in oklab, #0b1220 70%, transparent);
@@ -21,26 +24,94 @@ body{ background: var(--bg); color: var(--fg); }
   @apply px-2 py-0.5 rounded-md bg-slate-800 border border-slate-600/50;
 }
 
-/* ====== cell ====== */
+/* =========================================================
+   GRID CONTAINER (vẽ kẻ lưới bằng background, ô sát nhau)
+   ========================================================= */
+.board-tight{
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      var(--grid-line) 0 1px,
+      transparent 1px var(--cell)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--grid-line) 0 1px,
+      transparent 1px var(--cell)
+    );
+  background-size: var(--cell) var(--cell), var(--cell) var(--cell);
+  background-position: var(--grid-off) var(--grid-off), var(--grid-off) var(--grid-off);
+  will-change: background-position;
+}
+/* viền ngoài bảng lưới – ăn khớp với offset */
+.board-tight::after{
+  content:"";
+  position:absolute;
+  inset: var(--grid-off);
+  border:1px solid var(--grid-line);
+  pointer-events:none;
+}
+
+/* ====== Axes (A-L / 1-12) bù đúng offset của lưới ====== */
+.axes-cols{ margin-left: var(--grid-off); }
+.axes-rows{ margin-top:  var(--grid-off); }
+
+/* =========================
+   CELL (không border để không hở khe)
+   ========================= */
 .cell{
-  width: var(--cell); height: var(--cell);
-  display: grid; place-items: center;
-  border: 1px solid color-mix(in oklab, var(--muted) 60%, transparent);
-  border-radius: var(--cell-br);
-  transition: box-shadow .14s ease, border-color .14s ease, transform .06s ease;
+  width: var(--cell);
+  height: var(--cell);
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border: 0;           /* lưới do container vẽ */
+  border-radius: 0;
+  transition: box-shadow .14s ease, transform .06s ease, background-color .12s ease;
+  will-change: box-shadow, transform, background-color;
+  contain: paint;
 }
 .cell:hover{
-  border-color: color-mix(in oklab, #38bdf8 70%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in oklab, #38bdf8 35%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, #38bdf8 65%, transparent);
 }
+
+/* Địa hình/vật cản */
+.cell.obstacle{ background: rgba(30,41,59,.9); }
+
+/* Ô có đơn vị của mình */
 .cell.unit{
-  background: rgba(16,185,129,.85);
-  outline: 1px dashed rgba(16,185,129,.35);
+  background: rgba(16,185,129,.82);
+  outline: 1px dashed rgba(16,185,129,.5);
   outline-offset: -2px;
 }
-.cell.hit{ background: rgba(239,68,68,.75); }
 
-/* Scrollbar */
+/* Ô đã trúng */
+.cell.hit{
+  background: rgba(239,68,68,.78);
+  animation: hit-flash .5s ease both;
+}
+@keyframes hit-flash{
+  0%   { filter: brightness(1.25); transform: scale(1.03); }
+  60%  { filter: brightness(1.05); transform: scale(1); }
+  100% { filter: brightness(1); }
+}
+
+/* Preview vùng bắn (không dùng ring để giữ lưới đẹp) */
+.cell--pv-ok{
+  box-shadow: inset 0 0 0 2px rgba(251,191,36,.95); /* amber-400 */
+  transform: translateZ(0) scale(1.02);
+}
+.cell--pv-bad{
+  box-shadow: inset 0 0 0 2px rgba(244,63,94,.95);  /* rose-500  */
+  transform: translateZ(0) scale(1.02);
+}
+
+/* ====== Scrollbar ====== */
 *::-webkit-scrollbar{ height: 10px; width: 10px; }
 *::-webkit-scrollbar-track{ background: rgba(15,23,42,.3); }
 *::-webkit-scrollbar-thumb{

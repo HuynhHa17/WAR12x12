@@ -2,56 +2,29 @@ import { useMemo, useState } from 'react';
 import type { Board, Dir } from '../types';
 
 type Point = { x: number; y: number };
-
 const letters = 'ABCDEFGHIJKL'.split('');
 
-function inBounds(x: number, y: number) {
-  return x >= 0 && y >= 0 && x < 12 && y < 12;
-}
+const inBounds = (x:number,y:number)=> x>=0 && y>=0 && x<12 && y<12;
 
-function shapeCells(x: number, y: number, dir: Dir, ammo?: string): Point[] {
+function shapeCells(x:number,y:number,dir:Dir,ammo?:string): Point[] {
   if (!ammo) return [];
-  const d: Record<Dir, [number, number]> = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
-  const [dx, dy] = d[dir];
-  const cells: Point[] = [];
-  const hit = (ix: number, iy: number) => {
-    if (inBounds(ix, iy)) cells.push({ x: ix, y: iy });
-  };
+  const d: Record<Dir,[number,number]> = { N:[0,-1], E:[1,0], S:[0,1], W:[-1,0] };
+  const [dx,dy] = d[dir];
+  const out: Point[] = [];
+  const hit = (ix:number,iy:number)=>{ if(inBounds(ix,iy)) out.push({x:ix,y:iy}); };
 
   switch (ammo) {
-    case '1x1':
-      hit(x, y);
-      break;
-    case '1x2':
-      hit(x, y);
-      hit(x + dx, y + dy);
-      break;
-    case '1x3':
-      hit(x, y);
-      hit(x + dx, y + dy);
-      hit(x + 2 * dx, y + 2 * dy);
-      break;
-    case '2x2':
-      hit(x, y);
-      hit(x + 1, y);
-      hit(x, y + 1);
-      hit(x + 1, y + 1);
-      break;
-    case 'burst':
-      // burst là ngẫu nhiên ở server; preview chỉ gợi ý vùng quanh tâm
-      hit(x, y);
-      hit(x + dx, y + dy);
-      hit(x - dx, y - dy);
-      break;
+    case '1x1': hit(x,y); break;
+    case '1x2': hit(x,y); hit(x+dx,y+dy); break;
+    case '1x3': hit(x,y); hit(x+dx,y+dy); hit(x+2*dx,y+2*dy); break;
+    case '2x2': hit(x,y); hit(x+1,y); hit(x,y+1); hit(x+1,y+1); break;
+    case 'burst': hit(x,y); hit(x+dx,y+dy); hit(x-dx,y-dy); break; // preview gợi ý
     case 'radar':
-      hit(x, y);
-      for (let i = -2; i <= 2; i++) {
-        if (dir === 'E' || dir === 'W') hit(x + i, y);
-        else hit(x, y + i);
-      }
+      hit(x,y);
+      for (let i=-2;i<=2;i++) (dir==='E'||dir==='W') ? hit(x+i,y) : hit(x,y+i);
       break;
   }
-  return cells;
+  return out;
 }
 
 export default function BoardGrid({
@@ -84,49 +57,77 @@ export default function BoardGrid({
   const preview = useMemo(() => {
     const src = hover ?? target;
     if (!src) return new Set<string>();
-    return new Set(shapeCells(src.x, src.y, dir, ammo).map((p) => `${p.x},${p.y}`));
+    return new Set(shapeCells(src.x, src.y, dir, ammo).map(p => `${p.x},${p.y}`));
   }, [hover, target, dir, ammo]);
 
   return (
     <div className="inline-block">
-      {/* Nhãn cột */}
-      <div className="ml-7 grid grid-cols-12 gap-1 mb-1 select-none text-xs opacity-70">
-        {letters.map((c) => (
-          <div key={c} className="w-7 text-center">
+      {/* Nhãn cột A–L: lề trái = bề rộng cột số hàng + khoảng cách 0.25rem */}
+      <div
+        className="select-none text-xs opacity-70 mb-1"
+        style={{
+          marginLeft: 'calc(var(--cell)*0.9 + 0.25rem)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(12, var(--cell))',
+        }}
+      >
+        {letters.map(c => (
+          <div
+            key={c}
+            className="text-center"
+            style={{ width: 'var(--cell)', height: 'var(--cell)', lineHeight: 'var(--cell)' }}
+          >
             {c}
           </div>
         ))}
       </div>
 
-      <div className="flex gap-1">
-        {/* Nhãn hàng */}
-        <div className="mr-1 grid grid-rows-12 gap-1 select-none text-xs opacity-70">
+      <div className="flex" style={{ gap: 0 }}>
+        {/* Nhãn hàng 1–12 */}
+        <div
+          className="mr-1 select-none text-xs opacity-70"
+          style={{ display: 'grid', gridTemplateRows: 'repeat(12, var(--cell))' }}
+        >
           {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className="h-7 w-6 text-right pr-1 leading-7">
+            <div
+              key={i}
+              className="text-right pr-1"
+              style={{
+                width: 'calc(var(--cell)*0.9)',
+                height: 'var(--cell)',
+                lineHeight: 'var(--cell)',
+              }}
+            >
               {i + 1}
             </div>
           ))}
         </div>
 
-        {/* Lưới 12x12 */}
-        <div className="grid grid-cols-12 gap-1">
+        {/* Lưới 12x12 – sát nhau, kẻ lưới bằng background (xem .board-tight trong CSS) */}
+        <div
+          className="board-tight"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(12, var(--cell))',
+            gridAutoRows: 'var(--cell)',
+          }}
+        >
           {board.flatMap((row, y) =>
             row.map((c, x) => {
               const key = `${x},${y}`;
               const isHit = !!c.h;
               const hasUnit = showUnits && !!c.u;
-              const aimed = preview.has(key)
-                ? ' ring-2 ring-amber-400/70 ring-offset-1 ring-offset-slate-900 '
-                : '';
+
+              const aimed = preview.has(key) ? ' cell--aim ' : '';
               const fx = fxKeys?.has(key) ? ' animate-ping-slow ' : '';
 
               const base =
                 'cell transition-colors duration-100 ' +
-                'hover:border-sky-400/70 hover:shadow ' +
                 (c.o ? 'obstacle ' : '') +
                 (hasUnit ? 'unit ' : '') +
                 (isHit ? 'hit ' : '') +
-                fx;
+                fx +
+                aimed;
 
               const tipCoord = `${letters[x]}${y + 1}`;
               const title = unitTitles?.[key]
@@ -138,7 +139,8 @@ export default function BoardGrid({
                   key={key}
                   data-x={x}
                   data-y={y}
-                  className={base + aimed + (canFire ? ' cursor-pointer ' : '')}
+                  data-can-fire={canFire ? 'true' : 'false'}
+                  className={base + (canFire ? ' cursor-pointer ' : '')}
                   title={title}
                   onMouseEnter={() => setHover({ x, y })}
                   onMouseLeave={() => setHover(undefined)}
@@ -157,7 +159,7 @@ export default function BoardGrid({
         <div className="mt-3 flex gap-3 text-xs opacity-70 select-none">
           <Legend sw="bg-emerald-700/80" label="Ô có đơn vị" />
           <Legend sw="bg-red-600/70" label="Ô đã trúng" />
-          <Legend sw="ring-amber-400/70 ring-2" label="Vùng bắn dự kiến" />
+          <Legend sw="outline outline-2 outline-amber-400/70" label="Vùng bắn dự kiến" />
         </div>
       )}
     </div>
