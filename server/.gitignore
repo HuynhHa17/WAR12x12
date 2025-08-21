@@ -1,0 +1,18 @@
+# Node
+node_modules/
+server/node_modules/
+
+# Build output
+dist/
+build/
+.vite/
+.cache/
+coverage/
+
+# Env
+.env*
+!.env.example
+
+# Hệ điều hành
+.DS_Store
+Thumbs.db
