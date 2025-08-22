@@ -265,7 +265,3 @@ Vui lòng kiểm tra license của các thư viện phụ thuộc trước khi d
 
 ```
 
----
-
-Bạn muốn mình tối ưu README này theo **style GitHub chuyên nghiệp** (có badge, ảnh minh hoạ, demo gif) không?
-```
