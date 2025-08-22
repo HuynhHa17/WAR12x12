@@ -26,32 +26,40 @@ Frontend **React + Vite (TypeScript, Zustand, Tailwind)**, backend **Node.js + E
 
 ---
 
-## 🗂 Cấu trúc
+## 🗂 Cấu trúc dự án
 
-```
+```bash
+War12x12/
+├── server/                         # Backend (Node.js + Express + Socket.IO)
+│   ├── index.js                    # Điểm vào chính của server
+│   ├── package.json                # Script & dependencies cho server
+│   └── ...                         # (có thể thêm utils/, services/, models/ sau này)
+│
+├── client/                         # Frontend (React + Vite + TS)
+│   ├── index.html                  # Template chính cho Vite
+│   ├── package.json                # Script & dependencies cho client
+│   ├── public/                     # Static assets (favicon, logo…)
+│   └── src/
+│       ├── main.tsx                # Entry React, mount App
+│       ├── App.tsx                 # Root component
+│       ├── store.ts                # Zustand store + Socket wiring
+│       ├── types.ts                # Định nghĩa TypeScript chung
+│       ├── index.css               # CSS global + board styles
+│       │
+│       ├── components/             # Các UI components
+│       │   ├── BattleUI.tsx        # HUD chính khi vào trận
+│       │   ├── BoardEditor.tsx     # Giao diện xếp quân
+│       │   ├── BoardGrid.tsx       # Vẽ lưới 12×12
+│       │   ├── ChatPanel.tsx       # Chat + emoji
+│       │   ├── LegendBar.tsx       # Thanh legend hiển thị quân/đạn
+│       │   └── MapSpinner.tsx      # Spinner xoay map ngẫu nhiên
+│       │
+│       └── assets/                 # Icon, ảnh nền, audio (nếu có)
+│
+├── .gitignore                      # Ignore node_modules, build, env...
+├── README.md                       # Hướng dẫn (tệp bạn đang xem)
+└── LICENSE                         # License dự án
 
-.
-├─ server/                      # Node + Express + Socket.IO
-│  ├─ index.js
-│  └─ package.json
-└─ client/                      # React + Vite (TS)
-├─ src/
-│  ├─ components/
-│  │  ├─ BattleUI.tsx
-│  │  ├─ BoardEditor.tsx
-│  │  ├─ BoardGrid.tsx
-│  │  ├─ ChatPanel.tsx
-│  │  ├─ LegendBar.tsx
-│  │  └─ MapSpinner.tsx
-│  ├─ App.tsx
-│  ├─ store.ts              # Zustand + Socket wiring
-│  ├─ types.ts
-│  ├─ index.css             # CSS lưới
-│  └─ main.tsx
-├─ index.html
-└─ package.json
-
-````
 
 ---
 
