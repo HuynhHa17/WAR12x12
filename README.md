@@ -254,6 +254,3 @@ node index.js
 
 Demo phục vụ mục đích học tập.
 Vui lòng kiểm tra license của các thư viện phụ thuộc trước khi dùng thương mại.
-
-```
-
