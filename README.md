@@ -1,4 +1,3 @@
-Bạn đã viết sẵn cấu trúc và hướng dẫn khá chi tiết rồi 👍. Dưới đây mình gom lại thành một file **`README.md`** hoàn chỉnh, bạn chỉ cần copy về dự án:
 
 ```markdown
 # War12x12 — Realtime Battles
