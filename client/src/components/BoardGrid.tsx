@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Board, Dir } from '../types';
-
+  
 type Point = { x: number; y: number };
 const letters = 'ABCDEFGHIJKL'.split('');
 
@@ -61,6 +61,7 @@ export default function BoardGrid({
   }, [hover, target, dir, ammo]);
 
   return (
+
     <div className="inline-block">
       {/* Nhãn cột A–L: lề trái = bề rộng cột số hàng + khoảng cách 0.25rem */}
       <div
@@ -81,7 +82,6 @@ export default function BoardGrid({
           </div>
         ))}
       </div>
-
       <div className="flex" style={{ gap: 0 }}>
         {/* Nhãn hàng 1–12 */}
         <div
@@ -104,6 +104,7 @@ export default function BoardGrid({
         </div>
 
         {/* Lưới 12x12 – sát nhau, kẻ lưới bằng background (xem .board-tight trong CSS) */}
+
         <div
           className="board-tight"
           style={{
@@ -154,7 +155,6 @@ export default function BoardGrid({
           )}
         </div>
       </div>
-
       {showLegend && (
         <div className="mt-3 flex gap-3 text-xs opacity-70 select-none">
           <Legend sw="bg-emerald-700/80" label="Ô có đơn vị" />

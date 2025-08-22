@@ -20,6 +20,7 @@ export default function Lobby() {
   const toggleReady = () => {
     const nowReady = !(me?.ready)
     socket.emit('player:ready', { ready: nowReady })
+    
     toast(nowReady ? 'Bạn đã đánh dấu Sẵn sàng' : 'Bạn đã hủy Sẵn sàng')   // <==
   }
 
