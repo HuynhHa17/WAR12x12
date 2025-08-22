@@ -250,13 +250,6 @@ node index.js
 
 ---
 
-## 🤝 Đóng góp
-
-* Tạo branch `feature/<ten-tinh-nang>`, commit nhỏ gọn.
-* PR kèm mô tả + ảnh/clip nếu có.
-
----
-
 ## 📄 License
 
 Demo phục vụ mục đích học tập.
