@@ -9,6 +9,7 @@ type Timers = {
   spinEndsAt?: number | null
   fireEndsAt?: number | null
   gameEndsAt?: number | null
+  
 }
 
 type RoomPhase = 'waiting' | 'placing' | 'coin' | 'playing' | 'ended'

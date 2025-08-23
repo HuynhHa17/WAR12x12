@@ -14,6 +14,7 @@ const CENTER_DEG = [45, 135, 225, 315] // tâm mỗi lát (90°/lát)
 export default function MapSpinner({
   target,
   onDone,
+  
 }: {
   target: Terrain
   onDone?: () => void

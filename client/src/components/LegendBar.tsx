@@ -6,6 +6,7 @@ export default function LegendBar() {
         className="inline-block w-3 h-3 rounded-sm"
         style={{ background: color, boxShadow: ring ? '0 0 0 2px #f59e0b' : undefined }}
       />
+
       {text}
     </span>
   );
