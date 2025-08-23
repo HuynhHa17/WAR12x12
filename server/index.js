@@ -159,6 +159,9 @@ function beginSpinWindow(room) {
   if (room.phase !== 'playing' || !room.turn) return;
   clearTurnTimers(room);
 
+
+
+
   const shooterId = room.turn.current;
   room.timers.spinEndsAt = Date.now() + SPIN_MS;
   room.timers.fireEndsAt = null;
@@ -182,6 +185,9 @@ function doSpin(room, shooterId, auto = false) {
   room.timers.spinEndsAt = null;
 
   io.to(shooterId).emit('spin:result', { ammo, fireEndsAt: room.timers.fireEndsAt });
+
+
+
 
   room._fireTO = setTimeout(() => {
     if (room.phase !== 'playing' || room.turn.current !== shooterId || room.turn.fired) return;
