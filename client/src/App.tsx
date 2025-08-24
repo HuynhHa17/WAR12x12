@@ -13,6 +13,7 @@ import ChatPanel from './components/ChatPanel'
 function makeEmptyBoard(): Board {
   return Array.from({ length: 12 }, () => Array.from({ length: 12 }, () => ({})))
 }
+
 type UnitType = 'commander' | 'artillery' | 'armor' | 'missile' | 'radar'
 function rot(dx: number, dy: number, dir: Dir): [number, number] {
   switch (dir) {

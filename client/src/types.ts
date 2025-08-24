@@ -9,7 +9,7 @@ export type Cell = {
   /** is my unit occupying */
   u?: boolean;
   /** optional unit name for tooltip */
-  uname?: string;
+  uname?: string; 
 };
 
 export type Board = Cell[][];

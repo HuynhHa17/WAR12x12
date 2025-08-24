@@ -9,7 +9,8 @@ type Placement = { id: string; type: UnitType; x: number; y: number; dir: Dir }
 const letters = 'ABCDEFGHIJKL'.split('')
 const DIRS: Dir[] = ['N', 'E', 'S', 'W']
 
-const UNIT_LABEL: Record<UnitType, string> = {
+const  UNIT_LABEL: Record<UnitType, string> = {
+  
   commander: 'Chỉ huy (1x1)',
   artillery: 'Pháo (1x2)',
   armor:     'Thiết giáp (2x2)',

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useGame } from '../store'
 
 const EMOJIS = [
-  { k: 'cuoi',      ch: '😄', label: 'Cười' },
+  { k: 'cuoi',       ch: '😄', label: 'Cười' },
   { k: 'tuc',       ch: '😡', label: 'Tức' },
   { k: 'khoc',      ch: '😢', label: 'Khóc' },
   { k: 'bungchay',  ch: '🔥', label: 'Bùng cháy' },

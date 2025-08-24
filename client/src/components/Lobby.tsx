@@ -12,7 +12,8 @@ export default function Lobby() {
   const me = useMemo(() => players.find((p) => p.me), [players])
   const opp = useMemo(() => players.find((p) => !p.me), [players])
   const bothReady = !!(players.length === 2 && players.every((p) => p.ready))
-
+ 
+  
   useEffect(() => {                                       // <== thông báo khi đủ 2 sẵn sàng
     if (bothReady) toast.success('Cả hai đã sẵn sàng! Chuẩn bị bắt đầu…')
   }, [bothReady])

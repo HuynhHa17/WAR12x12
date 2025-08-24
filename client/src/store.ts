@@ -12,7 +12,7 @@ type Timers = {
   
 }
 
-type RoomPhase = 'waiting' | 'placing' | 'coin' | 'playing' | 'ended'
+type RoomPhase = 'waiting' | 'placing'  | 'coin' | 'playing' | 'ended'
 type RoomState = {
   code?: string
   phase?: RoomPhase
