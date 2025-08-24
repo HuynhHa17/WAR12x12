@@ -15,7 +15,7 @@ const PLACE_MS = 120_000;
 const SPIN_MS = 15_000;
 const FIRE_MS = 60_000;
 const GAME_MS = 15 * 60_000;
-/////////////////
+///////////////////////
 const AMMO_POOL = ['1x1', '1x2', '2x2', '1x3', 'burst', 'radar'];
 const TERRAIN_TYPES = ['desert', 'jungle', 'prairie', 'ice'];
 
@@ -134,6 +134,10 @@ function broadcast(room) {
   });
 }
 
+
+
+
+
 // ====== turn engine ======
 function clearTurnTimers(room) {
   if (room._spinTO) { clearTimeout(room._spinTO); room._spinTO = null; }
@@ -154,6 +158,9 @@ function startPlaying(room, firstId) {
 function beginSpinWindow(room) {
   if (room.phase !== 'playing' || !room.turn) return;
   clearTurnTimers(room);
+
+
+
 
   const shooterId = room.turn.current;
   room.timers.spinEndsAt = Date.now() + SPIN_MS;
@@ -178,6 +185,9 @@ function doSpin(room, shooterId, auto = false) {
   room.timers.spinEndsAt = null;
 
   io.to(shooterId).emit('spin:result', { ammo, fireEndsAt: room.timers.fireEndsAt });
+
+
+
 
   room._fireTO = setTimeout(() => {
     if (room.phase !== 'playing' || room.turn.current !== shooterId || room.turn.fired) return;
