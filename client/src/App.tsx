@@ -22,6 +22,9 @@ function rot(dx: number, dy: number, dir: Dir): [number, number] {
     case 'W': return [-dy, dx]
   }
 }
+
+
+
 function cellsFor(type: UnitType, x: number, y: number, dir: Dir) {
   const out: { x: number; y: number }[] = []
   const stamp = (w: number, h: number) => {
@@ -31,6 +34,10 @@ function cellsFor(type: UnitType, x: number, y: number, dir: Dir) {
         out.push({ x: x + rx, y: y + ry })
       }
   }
+
+
+
+
   if (type === 'commander') stamp(1, 1)
   else if (type === 'artillery') stamp(1, 2)
   else if (type === 'armor') stamp(2, 2)
@@ -39,18 +46,24 @@ function cellsFor(type: UnitType, x: number, y: number, dir: Dir) {
   return out
 }
 
+
+
+
 /* ------------ End modal ------------ */
 function reasonText(reason?: string) {
   switch (reason) {
     case 'commander_down': return 'Hạ gục Chỉ huy'
     case 'all_units_down': return 'Đối thủ đã mất toàn bộ đơn vị'
-    case 'three_skips':    return 'Đối thủ bỏ lượt 3 lần'
-    case 'opponent_left':  return 'Đối thủ rời trận'
-    case 'timeout':        return 'Hết giờ'
-    case 'eliminate':      return 'Tiêu diệt mục tiêu'
-    default:               return undefined
+    case 'three_skips': return 'Đối thủ bỏ lượt 3 lần'
+    case 'opponent_left': return 'Đối thủ rời trận'
+    case 'timeout': return 'Hết giờ'
+    case 'eliminate': return 'Tiêu diệt mục tiêu'
+    default: return undefined
   }
 }
+
+
+
 
 function EndGameModal({
   open, meWin, reason, onRematch, onLeave, waitingRematch
@@ -90,6 +103,10 @@ function EndGameModal({
     </div>
   )
 }
+
+
+
+
 
 /* ============= App ============= */
 export default function App() {
@@ -134,6 +151,9 @@ export default function App() {
     const t = setInterval(() => forceTick((n) => n + 1), 300)
     return () => clearInterval(t)
   }, [])
+
+
+
 
   // Shortcuts
   useEffect(() => {
@@ -184,6 +204,9 @@ export default function App() {
     setShowMapSpin(true)
     spinTimerRef.current = window.setTimeout(() => finalizeMapSpin(), 1600)
   }
+
+
+
 
   // helper reset local state
   const resetLocalState = useCallback(() => {
@@ -260,9 +283,9 @@ export default function App() {
     const onFireResolve = ({ hits }: any) => {
       setEnemyView((prev) => {
         const c = prev.map((r) => r.map((cell) => ({ ...cell })))
-        ;(hits || []).forEach((h: any) => {
-          if (c[h.y]?.[h.x]) c[h.y][h.x].h = true
-        })
+          ; (hits || []).forEach((h: any) => {
+            if (c[h.y]?.[h.x]) c[h.y][h.x].h = true
+          })
         return c
       })
     }
@@ -271,9 +294,9 @@ export default function App() {
       setBoard((b) => {
         if (!b) return b as any
         const c = b.map((r) => r.map((cell) => ({ ...cell })))
-        ;(hits || []).forEach((h: any) => {
-          if (c[h.y]?.[h.x]) c[h.y][h.x].h = true
-        })
+          ; (hits || []).forEach((h: any) => {
+            if (c[h.y]?.[h.x]) c[h.y][h.x].h = true
+          })
         return c as Board
       })
     }
@@ -439,18 +462,18 @@ export default function App() {
                   }
                   const b2 = board.map((r) => r.map((c) => ({ ...c, u: false })))
                   const nameMap: Record<string, string> = {}
-                  ;(units as Array<{ type: UnitType; x: number; y: number; dir: Dir }>).forEach((u) => {
-                    const cells = cellsFor(u.type, u.x, u.y, u.dir)
-                    const uname = LABEL[u.type]
-                    cells.forEach((cell) => {
-                      const cellObj = b2[cell.y]?.[cell.x]
-                      if (cellObj) {
-                        cellObj.u = true
-                        ;(cellObj as any).uname = uname
-                        nameMap[`${cell.x},${cell.y}`] = uname
-                      }
+                    ; (units as Array<{ type: UnitType; x: number; y: number; dir: Dir }>).forEach((u) => {
+                      const cells = cellsFor(u.type, u.x, u.y, u.dir)
+                      const uname = LABEL[u.type]
+                      cells.forEach((cell) => {
+                        const cellObj = b2[cell.y]?.[cell.x]
+                        if (cellObj) {
+                          cellObj.u = true
+                            ; (cellObj as any).uname = uname
+                          nameMap[`${cell.x},${cell.y}`] = uname
+                        }
+                      })
                     })
-                  })
                   setBoard(b2)
                   setUnitTitles(nameMap)
                   socket.emit('placement:done', { units })
