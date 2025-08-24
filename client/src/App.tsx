@@ -225,6 +225,9 @@ export default function App() {
     setWaitingRematch(false)
   }, [])
 
+
+
+
   // lifecycle
   const prevPlayers = useRef<any[] | undefined>(undefined)
   const startedRef = useRef(false)
