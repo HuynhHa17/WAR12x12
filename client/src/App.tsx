@@ -9,7 +9,7 @@ import BattleUI from './components/BattleUI'
 import LegendBar from './components/LegendBar'
 import ChatPanel from './components/ChatPanel'
 
-/* ------------ Helpers ------------ */
+/* -------------- Helpers ------------ */
 function makeEmptyBoard(): Board {
   return Array.from({ length: 12 }, () => Array.from({ length: 12 }, () => ({})))
 }
