@@ -12,7 +12,8 @@ type Timers = {
   
 }
 
-type RoomPhase = 'waiting' | 'placing'  | 'coin' | 'playing' | 'ended'
+type RoomPhase = 'waiting' | 'placing'  | 'coin' | 'playing' | 'ended' 
+
 type RoomState = {
   code?: string
   phase?: RoomPhase
@@ -22,7 +23,8 @@ type RoomState = {
   turn?: { current: string } | null
   // server có đẩy ra khi endGame()
   winnerId?: string | null
-  reason?: string | null
+  reason?: string | null 
+  
 }
 
 type ChatMsg = { from: string; text: string; emoji?: string; ts: number }

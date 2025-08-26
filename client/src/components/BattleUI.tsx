@@ -6,7 +6,8 @@ import BoardGrid from './BoardGrid';
 function TimerRing({
   endsAt,
   label,
-  totalMs = 60_000,
+  totalMs = 60_000, 
+  
 }: {
   endsAt?: number;
   label: string;

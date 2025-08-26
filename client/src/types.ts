@@ -12,6 +12,7 @@ export type Cell = {
   uname?: string; 
 };
 
+
 export type Board = Cell[][];
 
 export type Player = { id: string; name: string; ready?: boolean; me?: boolean };
