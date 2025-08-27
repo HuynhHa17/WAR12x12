@@ -8,8 +8,14 @@
   --bg: #0f172a;
   --fg: #e2e8f0;
   --muted: #334155;
+
+  /* Kích thước ô */
   --cell: clamp(1.55rem, 2.2vw, 1.95rem);
   --cell-br: .125rem;
+
+  /* Màu & offset của kẻ lưới (đồng bộ cho mọi nơi) */
+  --grid-line: color-mix(in oklab, var(--muted) 55%, transparent);
+  --grid-off: 1px; /* Nếu thấy răng cưa ở vài mức zoom, thử 0.5px hoặc 0px */
 }
 
 html, body { height: 100%; }
@@ -24,30 +30,27 @@ body{
    GRID (Ô sát nhau + lưới chuẩn zoom)
    ========================= */
 
-/* Container lưới – kẻ lưới 1px bằng background, có viền ngoài */
+/* Container lưới – kẻ lưới 1px bằng background, có viền ngoài siêu nét */
 .board-tight{
-  --grid-line: color-mix(in oklab, var(--muted) 55%, transparent);
+  position: relative;
   display: grid;
   grid-template-columns: repeat(12, var(--cell));
   grid-auto-rows: var(--cell);
   gap: 0;
+
   background:
-    /* hàng */
-    repeating-linear-gradient(
-      0deg,
-      var(--grid-line) 0 1px,
-      transparent 1px var(--cell)
-    ),
-    /* cột */
-    repeating-linear-gradient(
-      90deg,
-      var(--grid-line) 0 1px,
-      transparent 1px var(--cell)
-    );
+    repeating-linear-gradient(0deg,  var(--grid-line) 0 1px, transparent 1px var(--cell)),
+    repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px var(--cell));
   background-size: var(--cell) var(--cell), var(--cell) var(--cell);
-  background-position: 0 0, 0 0;
-  box-shadow: inset 0 0 0 1px var(--grid-line); /* viền ngoài */
+  background-position: var(--grid-off) var(--grid-off), var(--grid-off) var(--grid-off);
   will-change: background-position;
+}
+/* Viền ngoài ăn khớp offset */
+.board-tight::after{
+  content:"";
+  position:absolute; inset: var(--grid-off);
+  border:1px solid var(--grid-line);
+  pointer-events:none;
 }
 
 /* Mỗi ô: KHÔNG dùng border để không tạo khe */
@@ -58,6 +61,7 @@ body{
   place-items: center;
   border: 0;
   border-radius: 0;
+  position: relative; /* để vẽ overlay preview bằng ::after khi cần */
   transition:
     box-shadow .14s ease,
     transform .06s ease,
@@ -76,7 +80,6 @@ body{
 
 /* Ô có đơn vị ta */
 .cell.unit{
-  position: relative;
   background: rgba(5,150,105,.85);
   outline: 1px dashed rgba(16,185,129,.5);
   outline-offset: -2px;
@@ -88,10 +91,41 @@ body{
   animation: hit-flash .5s ease both;
 }
 
-/* Vùng bắn dự kiến – thay cho ring-offset (tránh lệch khi zoom) */
+/* ===== Preview vùng bắn / đặt quân =====
+   Hỗ trợ 3 kiểu:
+   - data-pv="ok|bad" (khuyến nghị)
+   - .cell--pv-ok / .cell--pv-bad (tương thích cũ)
+   - .cell--aim (tương thích cũ, 1 kiểu duy nhất)
+*/
+.cell[data-pv],
+.cell--pv-ok,
+.cell--pv-bad,
 .cell--aim{
-  box-shadow: inset 0 0 0 2px rgba(251,191,36,.85);
   transform: translateZ(0) scale(1.02);
+}
+
+.cell[data-pv]::after,
+.cell--pv-ok::after,
+.cell--pv-bad::after,
+.cell--aim::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:0;
+  pointer-events:none;
+}
+
+/* OK (amber) */
+.cell[data-pv="ok"]::after,
+.cell--pv-ok::after,
+.cell--aim::after{
+  background: rgba(251,191,36,.16);
+  box-shadow: inset 0 0 0 2px rgba(251,191,36,.95);
+}
+/* BAD (rose) */
+.cell[data-pv="bad"]::after,
+.cell--pv-bad::after{
+  background: rgba(244,63,94,.16);
+  box-shadow: inset 0 0 0 2px rgba(244,63,94,.95);
 }
 
 /* Hiệu ứng pop khi vừa trúng */
@@ -112,7 +146,6 @@ body{
   backdrop-filter: blur(6px);
   border: 1px solid rgba(148,163,184,.15);
 }
-
 .board-card{
   background: color-mix(in oklab, #0b1220 70%, transparent);
   backdrop-filter: blur(6px);
@@ -121,7 +154,6 @@ body{
   padding: 1rem;
   box-shadow: 0 10px 24px -12px rgba(2,6,23,.45);
 }
-
 .button{
   display:inline-flex; align-items:center; gap:.5rem;
   padding:.5rem .75rem; border-radius:.75rem;
@@ -183,11 +215,14 @@ body{
 .legend-swatch--rock   { background: rgba(30,41,59,.95); }
 
 /* =========================
-   AXES LABELS
+   AXES LABELS (khớp lưới)
    ========================= */
 .grid-axes{
   font-size:.75rem; opacity:.7; user-select:none; font-variant-numeric: tabular-nums;
 }
+/* Dịch nhãn để trùng với lưới (theo --grid-off) */
+.axes-cols{ transform: translateX(var(--grid-off)); }
+.axes-rows{ transform: translateY(var(--grid-off)); }
 
 /* =========================
    SCROLLBAR (WebKit)

@@ -9,8 +9,7 @@ type Placement = { id: string; type: UnitType; x: number; y: number; dir: Dir }
 const letters = 'ABCDEFGHIJKL'.split('')
 const DIRS: Dir[] = ['N', 'E', 'S', 'W']
 
-const  UNIT_LABEL: Record<UnitType, string> = {
-  
+const UNIT_LABEL: Record<UnitType, string> = {
   commander: 'Chỉ huy (1x1)',
   artillery: 'Pháo (1x2)',
   armor:     'Thiết giáp (2x2)',
@@ -62,6 +61,7 @@ function collides(board: Board, placed: Placement[], type: UnitType, x: number, 
   }
   return null
 }
+
 function findRandomSpot(board: Board, placed: Placement[], type: UnitType, dir: Dir, tries = 200): Point | null {
   for (let i = 0; i < tries; i++) {
     const x = Math.floor(Math.random() * 12)
@@ -153,6 +153,9 @@ export default function BoardEditor({
   const canSubmit = (Object.keys(UNIT_COUNT) as UnitType[]).every(t => (counter[t] || 0) === UNIT_COUNT[t])
   const remainSec = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
 
+  // Offset 1px để khớp với background-position của .board-tight
+  const OFFSET_PX = 1
+
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 mt-4 items-start">
       {/* Board */}
@@ -169,10 +172,14 @@ export default function BoardEditor({
 
         {/* Lưới + nhãn trục */}
         <div className="inline-block">
-          {/* Nhãn cột – bù offset cùng lưới */}
+          {/* Nhãn cột – bù offset khớp lưới */}
           <div
-            className="mb-1 grid-axes axes-cols"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(12, var(--cell))' }}
+            className="mb-1 grid-axes"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(12, var(--cell))',
+              transform: `translateX(${OFFSET_PX}px)`,
+            }}
           >
             {letters.map(c => (
               <div
@@ -186,10 +193,14 @@ export default function BoardEditor({
           </div>
 
           <div className="flex gap-2">
-            {/* Nhãn hàng – bù offset theo trục dọc */}
+            {/* Nhãn hàng – bù offset khớp lưới */}
             <div
-              className="grid-axes axes-rows"
-              style={{ display: 'grid', gridTemplateRows: 'repeat(12, var(--cell))' }}
+              className="grid-axes"
+              style={{
+                display: 'grid',
+                gridTemplateRows: 'repeat(12, var(--cell))',
+                transform: `translateY(${OFFSET_PX}px)`,
+              }}
             >
               {Array.from({ length: 12 }, (_, i) => (
                 <div
@@ -219,19 +230,18 @@ export default function BoardEditor({
                   )
                   const pv = preview.has(key)
                   const err = hover && pv ? collides(board, placed, selected, hover.x, hover.y, dir) : null
-
-                  const cls = [
-                    'cell',
-                    c.o ? 'obstacle' : '',
-                    c.h ? 'hit' : '',
-                    placedHere ? 'unit' : '',
-                    pv ? (err ? 'cell--pv-bad' : 'cell--pv-ok') : '',
-                  ].join(' ')
+                  const pvState = pv ? (err ? 'bad' : 'ok') : undefined
 
                   return (
                     <div
                       key={key}
-                      className={cls}
+                      className={[
+                        'cell',
+                        c.o ? 'obstacle' : '',
+                        c.h ? 'hit' : '',
+                        placedHere ? 'unit' : '',
+                      ].join(' ')}
+                      data-pv={pvState}                          // ✨ Preview rõ ràng (khớp CSS data-pv)
                       title={`${letters[x]}${y + 1}`}
                       onMouseEnter={() => setHover({ x, y })}
                       onMouseLeave={() => setHover(undefined)}
