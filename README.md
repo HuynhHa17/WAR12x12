@@ -1,27 +1,64 @@
+<div align="center">
 
-```markdown
-# War12x12 — Realtime Battles
+# ⚔️ War12x12 — Realtime Battles
 
-Game bắn chiến thuật trên bàn cờ **12×12** chạy realtime bằng **Socket.IO**.  
-Frontend **React + Vite (TypeScript, Zustand, Tailwind)**, backend **Node.js + Express + Socket.IO**.
+**Bài tập giữa kì môn Lập trình mạng**
+
+Game bắn chiến thuật trên bàn cờ **12×12**, chạy **realtime** với **Socket.IO**.
+Frontend **React + Vite (TypeScript, Zustand, Tailwind)** • Backend **Node.js + Express + Socket.IO**
+
+[![Node.js](https://img.shields.io/badge/node-%E2%89%A518+-brightgreen?logo=node.js)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/react-18+-61DAFB?logo=react)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/vite-5+-646CFF?logo=vite)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/ts-5+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-realtime-010101?logo=socketdotio)](https://socket.io/)
+[![License](https://img.shields.io/badge/license-edu_demo-lightgrey.svg)](#-license)
+
+</div>
+
+<p align="center">
+  <img src="client/public/cover.png" alt="War12x12 Cover" width="860"/>
+  <br/>
+  <em>(đặt ảnh/ảnh động demo vào <code>client/public/cover.png</code> hoặc <code>docs/demo.gif</code>)</em>
+</p>
+
+---
+
+## Mục lục
+
+* [🌟 Tính năng](#-tính-năng)
+* [🧰 Công nghệ](#-công-nghệ)
+* [🗂 Cấu trúc dự án](#-cấu-trúc-dự-án)
+* [✅ Yêu cầu](#-yêu-cầu)
+* [🚀 Cài đặt & Chạy (Development)](#-cài-đặt--chạy-development)
+* [🏗 Build & Chạy Production](#-build--chạy-production)
+* [🎮 Cách chơi](#-cách-chơi)
+* [⌨️ Phím tắt](#️-phím-tắt)
+* [🔧 Scripts mẫu](#-scripts-mẫu)
+* [🧩 Cấu hình môi trường](#-cấu-hình-môi-trường)
+* [🧭 Kiến trúc nhanh](#-kiến-trúc-nhanh)
+* [🐞 Lỗi thường gặp](#-lỗi-thường-gặp)
+* [🗺 Lộ trình (Roadmap)](#-lộ-trình-roadmap)
+* [🤝 Đóng góp](#-đóng-góp)
+* [📄 License](#-license)
 
 ---
 
 ## 🌟 Tính năng
 
-- Tạo phòng / vào phòng bằng **mã 6 số**, chat kèm **emoji**.
-- Xoay map ngẫu nhiên: Sa mạc, Rừng rậm, Thảo nguyên, Băng giá.
-- Pha **xếp quân** có xem trước vùng chiếm chỗ, gỡ nhanh bằng chuột phải, **Random xếp**.
-- Vòng chơi theo lượt: **quay đạn (≤15s)** → **chọn hướng** → **bắn (≤60s)**.
-- Kết thúc & popup **Chúc mừng/Chia buồn**, **Chơi lại** (rematch) hoặc **Thoát**.
-- Điều kiện thắng: **Hạ Chỉ huy**, **bỏ lượt 3 lần**, **đối thủ rời trận**, **hết giờ**, hoặc **diệt mục tiêu**.
+* Tạo/Vào phòng bằng **mã 6 số**, **chat** kèm emoji.
+* Xoay **map ngẫu nhiên**: Sa mạc • Rừng rậm • Thảo nguyên • Băng giá.
+* Pha **xếp quân** có preview vùng chiếm chỗ, **gỡ nhanh** (right–click), **Random xếp**.
+* Vòng chơi theo lượt: **quay đạn (≤15s)** → **chọn hướng** → **bắn (≤60s)**.
+* Kết thúc & popup **Chúc mừng/Chia buồn**, chọn **Chơi lại** (rematch) hoặc **Thoát**.
+* Điều kiện thắng: **Hạ Chỉ huy**, **bỏ lượt 3 lần**, **đối thủ rời trận**, **hết giờ**, **diệt mục tiêu**.
 
 ---
 
 ## 🧰 Công nghệ
 
-- **Client:** React + Vite (TS), Zustand, TailwindCSS, react-hot-toast
-- **Server:** Node.js, Express, Socket.IO
+* **Client:** React + Vite (TS), Zustand, TailwindCSS, react-hot-toast
+* **Server:** Node.js, Express, Socket.IO
 
 ---
 
@@ -29,46 +66,44 @@ Frontend **React + Vite (TypeScript, Zustand, Tailwind)**, backend **Node.js + E
 
 ```bash
 War12x12/
-├── server/                         # Backend (Node.js + Express + Socket.IO)
-│   ├── index.js                    # Điểm vào chính của server
-│   ├── package.json                # Script & dependencies cho server
-│   └── ...                         # (có thể thêm utils/, services/, models/ sau này)
+├── server/                          # Backend (Node.js + Express + Socket.IO)
+│   ├── index.js                     # Điểm vào chính của server
+│   ├── package.json                 # Scripts & dependencies cho server
+│   └── ...                          # utils/, services/, models/ (tùy mở rộng)
 │
-├── client/                         # Frontend (React + Vite + TS)
-│   ├── index.html                  # Template chính cho Vite
-│   ├── package.json                # Script & dependencies cho client
-│   ├── public/                     # Static assets (favicon, logo…)
+├── client/                          # Frontend (React + Vite + TS)
+│   ├── index.html                   # Template Vite
+│   ├── package.json                 # Scripts & dependencies cho client
+│   ├── public/                      # Static assets (favicon, logo, cover.png…)
 │   └── src/
-│       ├── main.tsx                # Entry React, mount App
-│       ├── App.tsx                 # Root component
-│       ├── store.ts                # Zustand store + Socket wiring
-│       ├── types.ts                # Định nghĩa TypeScript chung
-│       ├── index.css               # CSS global + board styles
-│       │
-│       ├── components/             # Các UI components
-│       │   ├── BattleUI.tsx        # HUD chính khi vào trận
-│       │   ├── BoardEditor.tsx     # Giao diện xếp quân
-│       │   ├── BoardGrid.tsx       # Vẽ lưới 12×12
-│       │   ├── ChatPanel.tsx       # Chat + emoji
-│       │   ├── LegendBar.tsx       # Thanh legend hiển thị quân/đạn
-│       │   └── MapSpinner.tsx      # Spinner xoay map ngẫu nhiên
-│       │
-│       └── assets/                 # Icon, ảnh nền, audio (nếu có)
+│       ├── main.tsx                 # Entry React, mount App
+│       ├── App.tsx                  # Root component
+│       ├── store.ts                 # Zustand store + Socket wiring
+│       ├── types.ts                 # Kiểu TS dùng chung
+│       ├── index.css                # CSS global + board styles
+│       └── components/              # UI components
+│           ├── BattleUI.tsx         # HUD chính khi vào trận
+│           ├── BoardEditor.tsx      # Giao diện xếp quân
+│           ├── BoardGrid.tsx        # Vẽ lưới 12×12
+│           ├── ChatPanel.tsx        # Chat + emoji
+│           ├── LegendBar.tsx        # Thanh legend hiển thị quân/đạn
+│           └── MapSpinner.tsx       # Spinner xoay map ngẫu nhiên
 │
-├── .gitignore                      # Ignore node_modules, build, env...
-├── README.md                       # Hướng dẫn (tệp bạn đang xem)
-└── LICENSE                         # License dự án
-
+├── .gitignore                       # Bỏ qua node_modules, build, env...
+├── README.md                        # (tệp bạn đang xem)
+└── LICENSE                          # (giấy phép/ghi chú sử dụng)
+```
 
 ---
 
 ## ✅ Yêu cầu
 
-- **Node.js 18+** (khuyến nghị LTS)
-- **npm** (hoặc pnpm/yarn)
-- Cổng mặc định:
-  - **Server:** `3000`
-  - **Client (Vite dev):** `5173`
+* **Node.js ≥ 18** (khuyến nghị LTS 20)
+* **npm** (hoặc pnpm/yarn)
+* Cổng mặc định:
+
+  * **Server:** `3000`
+  * **Client (Vite dev):** `5173`
 
 ---
 
@@ -81,11 +116,11 @@ War12x12/
 ```bash
 cd server
 npm i
-# Dev (khuyên dùng nếu có nodemon):
+# Dev (nên dùng nếu có nodemon):
 npm run dev
 # Hoặc chạy trực tiếp:
 node index.js
-````
+```
 
 Đặt cổng tuỳ chọn:
 
@@ -102,22 +137,17 @@ $env:PORT=3000; node index.js
 ```bash
 cd client
 npm i
-```
-
-Tạo file **client/.env** nếu server KHÔNG chạy ở `http://localhost:3000`:
-
-```env
-VITE_WS_URL="http://<ip-hoặc-domain>:3000"
-```
-
-Chạy dev:
-
-```bash
 npm run dev
 # Vite mở http://localhost:5173
 ```
 
-> Client tự dùng `VITE_WS_URL`; nếu **không** có, mặc định `http://localhost:3000`.
+Nếu server **KHÔNG** chạy ở `http://localhost:3000`, tạo `client/.env`:
+
+```env
+VITE_WS_URL="http://<ip-hoac-domain>:3000"
+```
+
+> Client tự đọc `VITE_WS_URL`; nếu **không** có, mặc định `http://localhost:3000`.
 
 ---
 
@@ -128,7 +158,7 @@ npm run dev
 ```bash
 cd client
 npm run build
-npm run preview           # xem thử bản build
+npm run preview        # xem thử bản build
 # Hoặc serve thư mục client/dist bằng Nginx/Netlify/S3…
 ```
 
@@ -153,16 +183,14 @@ node index.js
 
 2. **Xếp quân (120s)**
 
-   * Map ngẫu nhiên → xuất hiện lưới **12×12**.
-   * Chọn loại đơn vị, click lên lưới để đặt.
-   * **Xoay hướng:** `Q` (trái), `E/R` (phải).
-   * **Right-click** để gỡ nhanh đơn vị.
-   * **Random xếp** để hệ thống tự đặt hợp lệ.
+   * Map ngẫu nhiên → lưới **12×12**.
+   * Chọn đơn vị, click để đặt; **Q** xoay trái, **E/R** xoay phải.
+   * **Right–click** để gỡ nhanh; có **Random xếp**.
    * Bấm **Sẵn sàng** khi đủ số lượng.
 
 3. **Đến lượt bạn**
 
-   * Bấm **Space** để **quay đạn** (≤15s).
+   * **Space** để **quay đạn** (≤15s).
    * Chọn hướng (Q/E/R) → click ô mục tiêu để bắn (≤60s).
 
 4. **Loại đạn**
@@ -174,8 +202,8 @@ node index.js
 
 5. **Kết thúc trận**
 
-   * Điều kiện thắng: hạ Chỉ huy, bỏ lượt 3 lần, đối thủ rời trận, hết giờ, hoặc diệt mục tiêu.
-   * Hiện popup: **Chúc mừng/Chia buồn**, chọn **Chơi lại** hoặc **Thoát**.
+   * Thắng khi: hạ **Chỉ huy**, **bỏ lượt 3 lần**, **đối thủ rời trận**, **hết giờ**, hoặc **diệt mục tiêu**.
+   * Popup: **Chúc mừng/Chia buồn** → **Chơi lại** hoặc **Thoát**.
 
 6. **Chat & Emoji**
 
@@ -186,12 +214,12 @@ node index.js
 
 ## ⌨️ Phím tắt
 
-| Phím            | Tác dụng                              |
-| --------------- | ------------------------------------- |
-| **Q**           | Xoay trái (khi đặt quân / chọn hướng) |
-| **E** / **R**   | Xoay phải                             |
-| **Space**       | Quay đạn (đúng lượt)                  |
-| **Right-click** | Gỡ nhanh toàn đơn vị tại vị trí       |
+| Phím            | Tác dụng                          |
+| --------------- | --------------------------------- |
+| **Q**           | Xoay trái (đặt quân / chọn hướng) |
+| **E** / **R**   | Xoay phải                         |
+| **Space**       | Quay đạn (đến lượt)               |
+| **Right–click** | Gỡ nhanh toàn đơn vị tại vị trí   |
 
 ---
 
@@ -222,27 +250,60 @@ node index.js
 
 ---
 
+## 🧩 Cấu hình môi trường
+
+Tạo các file `.env` (tuỳ nhu cầu):
+
+**server/.env**
+
+```env
+PORT=3000
+CORS_ORIGIN=http://localhost:5173
+```
+
+**client/.env**
+
+```env
+# khi server không ở localhost:3000
+VITE_WS_URL="http://<ip-hoac-domain>:3000"
+```
+
+> Nếu đổi `VITE_WS_URL`, **build lại** client trước khi deploy.
+
+---
+
+## 🧭 Kiến trúc nhanh
+
+```
+[ Client (React + Vite) ]
+        │   ↑  Socket.IO (WebSocket)
+   HTTP │   │
+        ↓   │
+[ Server (Express + Socket.IO) ]  ——  State phòng/luật chơi/timer
+```
+
+---
+
 ## 🐞 Lỗi thường gặp
 
 * **Client không kết nối WS**
 
-  * Kiểm tra `VITE_WS_URL`.
-  * Kiểm tra CORS trên server.
+  * Kiểm tra `VITE_WS_URL` ở client.
+  * Kiểm tra `CORS_ORIGIN` ở server.
 
 * **Chat bị lặp tin**
 
-  * Tránh chạy nhiều tab dev.
-  * `store.ts` có cờ `__WAR12_SOCKET_WIRED__`.
+  * Không mở nhiều tab dev Vite cùng lúc.
+  * `store.ts` có cờ `__WAR12_SOCKET_WIRED__` tránh gắn socket trùng.
 
 * **Lưới lệch khi zoom**
 
-  * CSS dùng `.board-tight`.
-  * Hard-reload nếu vẫn lỗi.
+  * CSS dùng `.board-tight`; hard-reload/Clear cache nếu cần.
 
 * **Không đặt được đơn vị**
 
   * Báo “Ra ngoài bản đồ”, “Dính vật cản”… → đổi vị trí/hướng.
-  * Dùng **Random xếp**.
+  * Dùng **Random xếp** để hệ thống tự đặt hợp lệ.
 
 * **Port bận**
 
@@ -250,7 +311,24 @@ node index.js
 
 ---
 
+## 🗺 Lộ trình (Roadmap)
+
+* [ ] Hiệu ứng nổ/âm thanh bắn.
+* [ ] Spectator/khán giả phòng.
+* [ ] Lưu replays / share mã trận.
+* [ ] Matchmaking cơ bản.
+* [ ] Bot thử nghiệm (đặt quân, bắn ngẫu nhiên).
+
+---
+
+## 🤝 Đóng góp
+
+Đóng góp ideas/bugfix rất hoan nghênh.
+Tạo **issue** hoặc **PR** theo mô tả rõ ràng (môi trường, bước tái hiện, ảnh/ví dụ…).
+
+---
+
 ## 📄 License
 
-Demo phục vụ mục đích học tập.
-Vui lòng kiểm tra license của các thư viện phụ thuộc trước khi dùng thương mại.
+Demo phục vụ **mục đích học tập** (đặc biệt cho *Bài tập giữa kì môn Lập trình mạng*).
+Vui lòng kiểm tra license của các thư viện phụ thuộc trước khi dùng cho mục đích thương mại.
