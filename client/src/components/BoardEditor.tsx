@@ -87,6 +87,10 @@ export default function BoardEditor({
     return c
   }, [placed])
 
+  // tiện: check một ô có thuộc đơn vị đã đặt hay không
+  const cellHasPlacedUnit = (x: number, y: number) =>
+    placed.some(pl => cellsFor(pl.type, pl.x, pl.y, pl.dir).some(c => c.x === x && c.y === y))
+
   const preview = useMemo(() => {
     if (!hover) return new Set<string>()
     return new Set(cellsFor(selected, hover.x, hover.y, dir).map(p => `${p.x},${p.y}`))
@@ -118,16 +122,18 @@ export default function BoardEditor({
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  // ✅ Chỉ click trái để ĐẶT nếu không va chạm; KHÔNG còn cơ chế “click trái để gỡ”
   const handleCellClick = (x: number, y: number) => {
     const err = collides(board, placed, selected, x, y, dir)
     if (!err) {
       setPlaced(p => [...p, { id: crypto.randomUUID(), type: selected, x, y, dir }])
       return
     }
-    // click vào ô có quân -> gỡ cả đơn vị
-    const hitId = placed.find(pl => cellsFor(pl.type, pl.x, pl.y, pl.dir).some(c => c.x === x && c.y === y))?.id
-    if (hitId) setPlaced(p => p.filter(pl => pl.id !== hitId))
-    else toast.error(err)
+    if (err === 'Đè lên đơn vị khác' || cellHasPlacedUnit(x, y)) {
+      toast.error('Ô này đã có quân — dùng chuột phải để gỡ đơn vị này.')
+      return
+    }
+    toast.error(err)
   }
 
   const randomFill = () => {
@@ -155,6 +161,8 @@ export default function BoardEditor({
 
   // Offset 1px để khớp với background-position của .board-tight
   const OFFSET_PX = 1
+  const rowLabelW = 'calc(var(--cell) * 0.9)'
+  const rowGap = '0.25rem'
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 mt-4 items-start">
@@ -170,65 +178,50 @@ export default function BoardEditor({
           </div>
         </div>
 
-        {/* Lưới + nhãn trục */}
+        {/* Trục + Lưới */}
         <div className="inline-block">
-          {/* Nhãn cột – bù offset khớp lưới */}
+          {/* A–L */}
           <div
-            className="mb-1 grid-axes"
+            className="grid-axes mb-1"
             style={{
+              marginLeft: `calc(${rowLabelW} + ${rowGap})`,
               display: 'grid',
               gridTemplateColumns: 'repeat(12, var(--cell))',
-              transform: `translateX(${OFFSET_PX}px)`,
+              transform: `translateY(${OFFSET_PX}px)`,
             }}
           >
             {letters.map(c => (
-              <div
-                key={c}
-                style={{ width: 'var(--cell)', height: 'var(--cell)', lineHeight: 'var(--cell)' }}
-                className="text-center"
-              >
+              <div key={c} className="text-center" style={{ width:'var(--cell)', height:'var(--cell)', lineHeight:'var(--cell)' }}>
                 {c}
               </div>
             ))}
           </div>
 
-          <div className="flex gap-2">
-            {/* Nhãn hàng – bù offset khớp lưới */}
+          <div className="flex" style={{ gap: rowGap }}>
+            {/* 1–12 */}
             <div
               className="grid-axes"
               style={{
                 display: 'grid',
                 gridTemplateRows: 'repeat(12, var(--cell))',
-                transform: `translateY(${OFFSET_PX}px)`,
+                width: rowLabelW,
+                transform: `translateX(${OFFSET_PX}px)`,
               }}
             >
               {Array.from({ length: 12 }, (_, i) => (
-                <div
-                  key={i}
-                  style={{ width: 'var(--cell)', height: 'var(--cell)', lineHeight: 'var(--cell)' }}
-                  className="text-right pr-1"
-                >
+                <div key={i} className="text-right pr-1" style={{ height:'var(--cell)', lineHeight:'var(--cell)' }}>
                   {i + 1}
                 </div>
               ))}
             </div>
 
-            {/* Lưới 12x12 – sát nhau, kẻ lưới bằng background */}
-            <div
-              className="board-tight"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(12, var(--cell))',
-                gridAutoRows: 'var(--cell)',
-              }}
-            >
+            {/* Lưới */}
+            <div className="board-tight" style={{ gridTemplateColumns:'repeat(12, var(--cell))', gridAutoRows:'var(--cell)' }}>
               {board.flatMap((row, y) =>
                 row.map((c, x) => {
                   const key = `${x},${y}`
-                  const placedHere = placed.some(pl =>
-                    cellsFor(pl.type, pl.x, pl.y, pl.dir).some(k => k.x === x && k.y === y)
-                  )
-                  const pv = preview.has(key)
+                  const placedHere = cellHasPlacedUnit(x, y)
+                  const pv = hover ? preview.has(key) : false
                   const err = hover && pv ? collides(board, placed, selected, hover.x, hover.y, dir) : null
                   const pvState = pv ? (err ? 'bad' : 'ok') : undefined
 
@@ -241,17 +234,18 @@ export default function BoardEditor({
                         c.h ? 'hit' : '',
                         placedHere ? 'unit' : '',
                       ].join(' ')}
-                      data-pv={pvState}                          // ✨ Preview rõ ràng (khớp CSS data-pv)
+                      data-pv={pvState}
                       title={`${letters[x]}${y + 1}`}
                       onMouseEnter={() => setHover({ x, y })}
                       onMouseLeave={() => setHover(undefined)}
-                      onClick={() => handleCellClick(x, y)}
-                      onContextMenu={(e) => {
+                      onClick={() => handleCellClick(x, y)}    // chỉ đặt nếu hợp lệ, không gỡ
+                      onContextMenu={(e) => {                   // chuột phải để gỡ
                         e.preventDefault()
-                        const hitId = placed.find(pl =>
-                          cellsFor(pl.type, pl.x, pl.y, pl.dir).some(k => k.x === x && k.y === y)
-                        )?.id
-                        if (hitId) setPlaced(p => p.filter(pl => pl.id !== hitId))
+                        if (placedHere) {
+                          setPlaced(p => p.filter(pl =>
+                            !cellsFor(pl.type, pl.x, pl.y, pl.dir).some(k => k.x === x && k.y === y)
+                          ))
+                        }
                       }}
                     />
                   )

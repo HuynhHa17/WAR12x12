@@ -13,9 +13,12 @@
   --cell: clamp(1.55rem, 2.2vw, 1.95rem);
   --cell-br: .125rem;
 
-  /* Màu & offset của kẻ lưới (đồng bộ cho mọi nơi) */
-  --grid-line: color-mix(in oklab, var(--muted) 55%, transparent);
-  --grid-off: 1px; /* Nếu thấy răng cưa ở vài mức zoom, thử 0.5px hoặc 0px */
+  /* Lưới: Fallback trước, srgb nếu trình duyệt hỗ trợ color-mix */
+  --grid-line: rgba(148,163,184,.35); /* Fallback an toàn */
+  --grid-off: 1px; /* nếu răng cưa, thử 0.5px/0px */
+}
+@supports (background: color-mix(in srgb, #000 50%, transparent)) {
+  :root { --grid-line: color-mix(in srgb, var(--muted) 55%, transparent); }
 }
 
 html, body { height: 100%; }
@@ -29,15 +32,12 @@ body{
 /* =========================
    GRID (Ô sát nhau + lưới chuẩn zoom)
    ========================= */
-
-/* Container lưới – kẻ lưới 1px bằng background, có viền ngoài siêu nét */
 .board-tight{
   position: relative;
   display: grid;
   grid-template-columns: repeat(12, var(--cell));
   grid-auto-rows: var(--cell);
   gap: 0;
-
   background:
     repeating-linear-gradient(0deg,  var(--grid-line) 0 1px, transparent 1px var(--cell)),
     repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px var(--cell));
@@ -45,7 +45,6 @@ body{
   background-position: var(--grid-off) var(--grid-off), var(--grid-off) var(--grid-off);
   will-change: background-position;
 }
-/* Viền ngoài ăn khớp offset */
 .board-tight::after{
   content:"";
   position:absolute; inset: var(--grid-off);
@@ -53,7 +52,7 @@ body{
   pointer-events:none;
 }
 
-/* Mỗi ô: KHÔNG dùng border để không tạo khe */
+/* Ô lưới */
 .cell{
   width: var(--cell);
   height: var(--cell);
@@ -61,74 +60,51 @@ body{
   place-items: center;
   border: 0;
   border-radius: 0;
-  position: relative; /* để vẽ overlay preview bằng ::after khi cần */
-  transition:
-    box-shadow .14s ease,
-    transform .06s ease,
-    background-color .12s ease;
+  position: relative;
+  transition: box-shadow .14s ease, transform .06s ease, background-color .12s ease;
   will-change: box-shadow, transform, background-color;
   contain: paint;
 }
-
-/* Hover: dùng box-shadow, không đẩy layout */
+/* Hover: thêm fallback trước, color-mix sau (override khi hỗ trợ) */
 .cell:hover{
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, #38bdf8 65%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(56,189,248,.65);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #38bdf8 65%, transparent);
 }
-
-/* Địa hình cản */
 .cell.obstacle{ background: rgba(30,41,59,.9); }
-
-/* Ô có đơn vị ta */
 .cell.unit{
   background: rgba(5,150,105,.85);
   outline: 1px dashed rgba(16,185,129,.5);
   outline-offset: -2px;
 }
-
-/* Ô đã trúng đạn */
 .cell.hit{
   background: rgba(220,38,38,.78);
   animation: hit-flash .5s ease both;
 }
 
-/* ===== Preview vùng bắn / đặt quân =====
-   Hỗ trợ 3 kiểu:
-   - data-pv="ok|bad" (khuyến nghị)
-   - .cell--pv-ok / .cell--pv-bad (tương thích cũ)
-   - .cell--aim (tương thích cũ, 1 kiểu duy nhất)
-*/
+/* Preview vùng bắn / đặt quân */
 .cell[data-pv],
 .cell--pv-ok,
 .cell--pv-bad,
-.cell--aim{
-  transform: translateZ(0) scale(1.02);
-}
-
+.cell--aim{ transform: translateZ(0) scale(1.02); }
 .cell[data-pv]::after,
 .cell--pv-ok::after,
 .cell--pv-bad::after,
 .cell--aim::after{
-  content:"";
-  position:absolute; inset:0;
-  border-radius:0;
-  pointer-events:none;
+  content:""; position:absolute; inset:0; border-radius:0; pointer-events:none;
 }
-
-/* OK (amber) */
 .cell[data-pv="ok"]::after,
 .cell--pv-ok::after,
 .cell--aim::after{
   background: rgba(251,191,36,.16);
   box-shadow: inset 0 0 0 2px rgba(251,191,36,.95);
 }
-/* BAD (rose) */
 .cell[data-pv="bad"]::after,
 .cell--pv-bad::after{
   background: rgba(244,63,94,.16);
   box-shadow: inset 0 0 0 2px rgba(244,63,94,.95);
 }
 
-/* Hiệu ứng pop khi vừa trúng */
+/* Pop khi trúng */
 @keyframes hit-flash{
   0%   { filter: brightness(1.25); transform: scale(1.03); }
   60%  { filter: brightness(1.05); transform: scale(1); }
@@ -142,12 +118,12 @@ body{
    CARDS / PANELS / BADGES / BUTTONS
    ========================= */
 .glass{
-  background: color-mix(in oklab, #0b1220 70%, transparent);
+  background: color-mix(in srgb, #0b1220 70%, transparent);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(148,163,184,.15);
 }
 .board-card{
-  background: color-mix(in oklab, #0b1220 70%, transparent);
+  background: color-mix(in srgb, #0b1220 70%, transparent);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(148,163,184,.16);
   border-radius: 1rem;
@@ -217,10 +193,7 @@ body{
 /* =========================
    AXES LABELS (khớp lưới)
    ========================= */
-.grid-axes{
-  font-size:.75rem; opacity:.7; user-select:none; font-variant-numeric: tabular-nums;
-}
-/* Dịch nhãn để trùng với lưới (theo --grid-off) */
+.grid-axes{ font-size:.75rem; opacity:.7; user-select:none; font-variant-numeric: tabular-nums; }
 .axes-cols{ transform: translateX(var(--grid-off)); }
 .axes-rows{ transform: translateY(var(--grid-off)); }
 
@@ -244,4 +217,83 @@ body{
 
 @media (max-width: 420px){
   :root{ --cell: clamp(1.6rem, 4.5vw, 2.05rem); }
+}
+
+/* ============ HIT FX (ô trúng/miss/radar) ============ */
+@layer utilities {
+  @keyframes hit-pop { 0% { transform: scale(0.85); filter: brightness(1.8); } 100% { transform: scale(1); filter: brightness(1); } }
+  @keyframes hit-ring { 0% { transform: scale(0.2); opacity: .95; } 100% { transform: scale(1.8); opacity: 0; } }
+  @keyframes cell-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-1.5px); } 40% { transform: translateX(1.5px); } 60% { transform: translateX(-1px); } 80% { transform: translateX(1px); } }
+  @keyframes hit-smoke { 0% { opacity: .7; filter: blur(0px); transform: translateY(0) scale(0.9); } 100% { opacity: 0; filter: blur(3px); transform: translateY(-8px) scale(1.15); } }
+
+  .hit-flash {
+    animation: hit-pop 160ms ease-out;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.9), 0 0 10px rgba(255,210,80,.9);
+    background-image: radial-gradient(transparent 55%, rgba(255,220,120,.25) 80%);
+  }
+  .ring-base {
+    position: absolute; left: 50%; top: 50%;
+    width: 8px; height: 8px; border-width: 2px; border-style: solid; border-radius: 9999px;
+    transform: translate(-50%, -50%);
+    animation: hit-ring 450ms ease-out forwards; pointer-events: none;
+  }
+  .ring-hit  { border-color: rgba(255, 180, 0, 0.95); } /* mặc định amber */
+  .ring-miss { border-color: rgba(220, 230, 255, 0.85); }
+
+  .hit-smoke {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 55%, rgba(60,60,60,.35) 0%, rgba(0,0,0,0) 60%);
+    mix-blend-mode: multiply; animation: hit-smoke 650ms ease-out forwards;
+  }
+  .scorch {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle, rgba(0,0,0,.35) 0%, rgba(0,0,0,.15) 40%, rgba(0,0,0,0) 70%);
+    mix-blend-mode: multiply;
+  }
+  .shake-xs { animation: cell-shake 240ms ease-in-out; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hit-flash, .ring-base, .hit-smoke, .shake-xs { animation: none !important; }
+  }
+}
+
+/* ============ PHÂN BIỆT BẢNG MÌNH / ĐỐI THỦ ============ */
+/* Gắn class lên container: .board--me (bảng của tôi), .board--enemy (bảng đối thủ) */
+.board--me    { --hit-ring: rgba(239,68,68,.95);  --hit-flash: rgba(255,130,130,.35); } /* đỏ khi mình bị trúng */
+.board--enemy { --hit-ring: rgba(251,191,36,.95); --hit-flash: rgba(255,220,120,.25); } /* amber khi mình bắn trúng */
+
+.board--me .ring-hit,
+.board--enemy .ring-hit { border-color: var(--hit-ring) !important; }
+.board--me .hit-flash,
+.board--enemy .hit-flash { background-image: radial-gradient(transparent 55%, var(--hit-flash) 80%); }
+
+/* Rung cả bảng khi mình bị trúng: thêm .got-hit vào container */
+@keyframes board-damage {
+  0% { transform: translateX(0);   box-shadow: 0 0 0 0 rgba(239,68,68,.55); }
+  25%{ transform: translateX(-2px); box-shadow: 0 0 0 6px rgba(239,68,68,.25); }
+  50%{ transform: translateX(2px);  box-shadow: 0 0 0 10px rgba(239,68,68,.12); }
+  100%{ transform: translateX(0);   box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.board--me.got-hit,
+.board--me .board-tight.got-hit,
+.board--me .board-card.got-hit { animation: board-damage 320ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .board--me.got-hit,
+  .board--me .board-tight.got-hit,
+  .board--me .board-card.got-hit { animation: none !important; }
+}
+
+/* =========================================================
+   Ô ĐỊCH CÓ QUÂN BỊ BẮN TRÚNG  (override .cell.hit)
+   - BoardGrid sẽ gắn class "hit-unit" cho những ô địch vừa bị trúng
+   - Đặt sau .cell.hit để chắc chắn override
+   ========================================================= */
+.cell.hit.hit-unit{
+  background: rgba(245, 158, 11, 0.92) !important; /* amber đậm */
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, .75),
+              0 0 0 2px rgba(251, 191, 36, .08);
+}
+/* Nếu muốn chỉ áp dụng riêng cho bảng địch */
+.board--enemy .cell.hit.hit-unit{
+  background: rgba(245, 158, 11, 0.92) !important;
 }

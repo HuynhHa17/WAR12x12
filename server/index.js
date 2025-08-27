@@ -493,7 +493,30 @@ io.on('connection', (socket) => {
     }
   });
 });
-//
+// ====== Board masking & emitting ======
+function maskBoardForViewer(board) {
+  // Chỉ lộ u ở ô đã trúng & có quân; còn lại ẩn u
+  return board.map(row =>
+    row.map(c => ({
+      o: !!c.o,
+      h: !!c.h,
+      u: (c.h && c.u) ? 1 : null,   // <<== điểm mấu chốt
+    }))
+  );
+}
+
+// Gửi board cho từng người chơi: myBoard full, enemyBoard đã mask
+function emitBoards(room) {
+  room.players.forEach(p => {
+    const me = p;
+    const opp = getOpponent(room, p.id);
+    io.to(p.id).emit('boards:sync', {
+      myBoard: me.board || mkEmptyBoard(),
+      enemyBoard: opp ? maskBoardForViewer(opp.board || mkEmptyBoard()) : mkEmptyBoard(),
+    });
+  });
+}
+
 // ====== Run server ======
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

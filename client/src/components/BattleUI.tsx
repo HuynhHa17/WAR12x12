@@ -84,11 +84,11 @@ export default function BattleUI({
   const canFire  = isMyTurn && !!ammo && !!fireDeadline && now < fireDeadline;
   const yourTurn = canSpin || canFire;
 
-  // Giữ ô đang ngắm trên lưới đối thủ để preview luôn hiện
+  // Target preview
   const [enemyTarget, setEnemyTarget] = useState<{ x: number; y: number } | undefined>();
   useEffect(() => { setEnemyTarget(undefined); }, [ammo]);
 
-  // Overlay vòng xoay đạn khi ammo thay đổi (debounce theo prev ref để tránh strict-mode double render)
+  // Ammo spinner overlay
   const prevAmmoRef = useRef<Ammo | undefined>(undefined);
   const [showAmmoSpin, setShowAmmoSpin] = useState(false);
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function BattleUI({
     prevAmmoRef.current = ammo;
   }, [ammo]);
 
-  // Q/E xoay, Space quay đạn (chỉ khi được phép)
+  // Q/E xoay, Space quay đạn
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -115,14 +115,67 @@ export default function BattleUI({
     return () => window.removeEventListener('keydown', onKey);
   }, [dir, setDir, canSpin, onSpin]);
 
+  /* ===== Ô “trúng QUÂN” cho cả hai map (nguồn duy nhất: hits.unit từ server) ===== */
+  const [mineUnitHitKeys, setMineUnitHitKeys]   = useState<Set<string>>(new Set());
+  const [enemyUnitHitKeys, setEnemyUnitHitKeys] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const addEnemyHits = ({ hits }: { hits?: Array<{x:number;y:number;unit?:string|null}> }) => {
+      if (!hits?.length) return;
+      setEnemyUnitHitKeys(prev => {
+        const nx = new Set(prev);
+        for (const h of hits) if (h?.unit) nx.add(`${h.x},${h.y}`);
+        return nx;
+      });
+    };
+    const addMineHits = ({ hits }: { hits?: Array<{x:number;y:number;unit?:string|null}> }) => {
+      if (!hits?.length) return;
+      setMineUnitHitKeys(prev => {
+        const nx = new Set(prev);
+        for (const h of hits) if (h?.unit) nx.add(`${h.x},${h.y}`);
+        return nx;
+      });
+    };
+
+    socket.on('fire:resolve', addEnemyHits);   // mình bắn: đánh dấu map địch
+    socket.on('under:attack', addMineHits);    // địch bắn: đánh dấu map mình
+
+    return () => {
+      socket.off('fire:resolve', addEnemyHits);
+      socket.off('under:attack', addMineHits);
+    };
+  }, [socket]);
+
+  // Reset khi vào màn chờ/đặt quân/room mới
+  useEffect(() => {
+    if (room.phase === 'waiting' || room.phase === 'placing') {
+      setMineUnitHitKeys(new Set());
+      setEnemyUnitHitKeys(new Set());
+    }
+  }, [room.phase, room.code]);
+
+  /* ===== Rung bảng của mình khi có thêm ô bị trúng ===== */
+  const myWrapRef = useRef<HTMLDivElement>(null);
+  const prevMyHits = useRef<number>(0);
+  useEffect(() => {
+    const countHits = (b: Board) => b.reduce((s, row) => s + row.filter(c => !!c.h).length, 0);
+    const nowHits = countHits(myBoard);
+    if (nowHits > prevMyHits.current) {
+      myWrapRef.current?.classList.add('got-hit');
+      const t = setTimeout(() => myWrapRef.current?.classList.remove('got-hit'), 360);
+      prevMyHits.current = nowHits;
+      return () => clearTimeout(t);
+    }
+    prevMyHits.current = nowHits;
+  }, [myBoard]);
+
   return (
     <div className="space-y-5">
       {/* Banner lượt */}
       <div
         className={`px-3 py-2 rounded-lg ${
-          yourTurn
-            ? 'bg-emerald-600/20 border border-emerald-500/40'
-            : 'bg-slate-800/60 border border-slate-700'
+          yourTurn ? 'bg-emerald-600/20 border border-emerald-500/40'
+                   : 'bg-slate-800/60 border border-slate-700'
         }`}
         role="status"
         aria-live="polite"
@@ -141,13 +194,8 @@ export default function BattleUI({
       <div className="glass p-3 rounded-xl grid gap-3 md:grid-cols-3 items-center">
         <div className="flex items-center gap-2">
           <span className="text-sm opacity-70">Trạng thái:</span>
-          {!ammo ? (
-            <span className="badge">Chưa có đạn</span>
-          ) : (
-            <span className="badge">
-              Có đạn: <b>{ammo}</b>
-            </span>
-          )}
+          {!ammo ? <span className="badge">Chưa có đạn</span>
+                 : <span className="badge">Có đạn: <b>{ammo}</b></span>}
         </div>
 
         <div className="flex items-center gap-3">
@@ -157,66 +205,56 @@ export default function BattleUI({
               className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700"
               onClick={() => setDir(dir === 'N' ? 'W' : dir === 'W' ? 'S' : dir === 'S' ? 'E' : 'N')}
               title="Q"
-            >
-              ⟲
-            </button>
+            >⟲</button>
             <div className="w-8 text-center px-2 py-1 rounded bg-slate-800">{dir}</div>
             <button
               className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700"
               onClick={() => setDir(dir === 'N' ? 'E' : dir === 'E' ? 'S' : dir === 'S' ? 'W' : 'N')}
               title="E"
-            >
-              ⟳
-            </button>
+            >⟳</button>
           </div>
         </div>
 
         <div className="flex justify-end gap-6">
-          {!ammo ? (
-            <TimerRing endsAt={spinDeadline} label="Quay vòng đạn (≤15s)" totalMs={15_000} />
-          ) : (
-            <TimerRing endsAt={fireDeadline} label="Thực hiện lệnh (≤60s)" totalMs={60_000} />
-          )}
+          {!ammo
+            ? <TimerRing endsAt={spinDeadline} label="Quay vòng đạn (≤15s)" totalMs={15_000} />
+            : <TimerRing endsAt={fireDeadline} label="Thực hiện lệnh (≤60s)" totalMs={60_000} />}
         </div>
       </div>
 
       {/* Hai bản đồ */}
       <div className="grid lg:grid-cols-2 gap-5">
         {/* Bản đồ của bạn */}
-        <div className="glass p-3 rounded-xl">
+        <div ref={myWrapRef} className="glass p-3 rounded-xl board--me">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-semibold">Bản đồ của bạn — {me}</h3>
           </div>
           <BoardGrid
             board={myBoard}
-            ammo={undefined}   // không preview trên lưới của mình
+            ammo={undefined}
             dir={dir}
             showUnits
             showLegend={false}
             fxKeys={fxMine}
             unitTitles={unitTitles}
+            unitHitKeys={mineUnitHitKeys}   // 💛 vàng đậm ô có quân trúng trên map mình
           />
           <div className="mt-2 text-xs opacity-70">Gợi ý: rê chuột lên ô xanh để xem tên đơn vị.</div>
         </div>
 
-        {/* Bản đồ đối thủ (nơi bắn) */}
-        <div className="glass p-3 rounded-xl">
+        {/* Bản đồ đối thủ */}
+        <div className="glass p-3 rounded-xl board--enemy">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-semibold">Bản đồ đối thủ — {opp}</h3>
-            <button
-              className="button font-semibold"
-              disabled={!canSpin}
-              onClick={onSpin}
-              title="Space để quay nhanh"
-            >
+            <button className="button font-semibold" disabled={!canSpin} onClick={onSpin} title="Space để quay nhanh">
               🎰 Quay vòng đạn
             </button>
           </div>
           <BoardGrid
             board={enemyBoard}
-            ammo={ammo}            // cần để vẽ demo vùng bắn
+            ammo={ammo}
             dir={dir}
-            target={enemyTarget}   // giữ/hiển thị preview ổn định
+            target={enemyTarget}
             setTarget={setEnemyTarget}
             canFire={canFire}
             onFire={(x, y) => {
@@ -226,6 +264,7 @@ export default function BattleUI({
             showUnits={false}
             showLegend={false}
             fxKeys={fxEnemy}
+            unitHitKeys={enemyUnitHitKeys} // 💛 vàng đậm ô có quân trúng trên map địch
           />
           <div className="mt-2 text-xs opacity-70">
             Mẹo: Rê chuột để thấy <b>vùng bắn dự kiến</b> (viền vàng). Q/E đổi hướng. Space quay đạn.
@@ -235,13 +274,7 @@ export default function BattleUI({
 
       {/* Overlay vòng xoay đạn */}
       {showAmmoSpin && ammo && (
-        <AmmoSpinner
-          target={ammo}
-          onDone={() => setShowAmmoSpin(false)}
-          // spins={3}
-          // size={288}
-          // duration={1.6}
-        />
+        <AmmoSpinner key={String(ammo)} target={ammo} onDone={() => setShowAmmoSpin(false)} />
       )}
     </div>
   );
